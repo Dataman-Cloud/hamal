@@ -12,6 +12,7 @@ import (
 
 // Config defines the conf info
 type Config struct {
+	Addr     string `require:"true" alias:"ADDR"`
 	SwanAddr string `require:"true" alias:"SWAN_ADDR"`
 }
 
