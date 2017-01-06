@@ -26,7 +26,6 @@ func InitHamalControl() *HamalControl {
 }
 
 func (hc *HamalControl) Ping(ctx *gin.Context) {
-	hc.Service.GetApp("nginx0051")
 	utils.Ok(ctx, "success")
 }
 
