@@ -21,9 +21,15 @@ func Router(middlewares ...gin.HandlerFunc) *gin.Engine {
 	r.Use(middleware.CORSMiddleware())
 	r.Use(middlewares...)
 
+	service := api.InitHamalControl()
 	hv1 := r.Group("/v1/hamal")
 	{
-		hv1.GET("/ping", api.Ping)
+		hv1.GET("/ping", service.Ping)
+		hv1.POST("/projects", service.CreateProject)
+		hv1.PUT("/projects", service.UpdateProject)
+		hv1.GET("/projects", service.GetProjects)
+		hv1.DELETE("/projects/:name", service.DeleteProjects)
+		hv1.GET("/projects/:name", service.GetProject)
 	}
 
 	return r

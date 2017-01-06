@@ -1,9 +1,87 @@
 package api
 
 import (
+	"github.com/Dataman-Cloud/hamal/src/models"
+	"github.com/Dataman-Cloud/hamal/src/service"
+	"github.com/Dataman-Cloud/hamal/src/utils"
+
+	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 )
 
-func Ping(ctx *gin.Context) {
-	ctx.String(200, "%s\n", "success")
+const (
+	ParamError      = "503-10001"
+	ProjectExist    = "503-10002"
+	ProjectNotExist = "503-10003"
+)
+
+type HamalControl struct {
+	Service *service.HamalService
+}
+
+func InitHamalControl() *HamalControl {
+	return &HamalControl{
+		Service: service.InitHamalService(),
+	}
+}
+
+func (hc *HamalControl) Ping(ctx *gin.Context) {
+	hc.Service.GetApp("nginx0051")
+	utils.Ok(ctx, "success")
+}
+
+func (hc *HamalControl) CreateProject(ctx *gin.Context) {
+	var project models.Project
+	if err := ctx.BindJSON(&project); err != nil {
+		log.Error("invalid param")
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid param"))
+		return
+	}
+
+	if err := hc.Service.CreateProject(project); err != nil {
+		log.Error(err)
+		utils.ErrorResponse(ctx, utils.NewError(ProjectExist, err))
+		return
+	}
+	utils.Create(ctx, "success")
+}
+
+func (hc *HamalControl) UpdateProject(ctx *gin.Context) {
+	var project models.Project
+	if err := ctx.BindJSON(&project); err != nil {
+		log.Error("invalid param")
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid param"))
+		return
+	}
+
+	if err := hc.Service.UpdateProject(project); err != nil {
+		log.Error(err)
+		utils.ErrorResponse(ctx, utils.NewError(ProjectNotExist, err))
+		return
+	}
+	utils.Update(ctx, "success")
+}
+
+func (hc *HamalControl) GetProjects(ctx *gin.Context) {
+	projects := hc.Service.GetProjects()
+	utils.Ok(ctx, projects)
+}
+
+func (hc *HamalControl) DeleteProjects(ctx *gin.Context) {
+	if err := hc.Service.DeleteProject(ctx.Param("name")); err != nil {
+		log.Error(err)
+		utils.ErrorResponse(ctx, utils.NewError(ProjectNotExist, err))
+		return
+	}
+	utils.Delete(ctx, "success")
+}
+
+func (hc *HamalControl) GetProject(ctx *gin.Context) {
+	project, err := hc.Service.GetProject(ctx.Param("name"))
+	if err != nil {
+		log.Error(err)
+		utils.ErrorResponse(ctx, utils.NewError(ProjectNotExist, err))
+		return
+	}
+	utils.Ok(ctx, project)
 }
