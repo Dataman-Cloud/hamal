@@ -50,6 +50,7 @@ func (hs *HamalService) CreateProject(project models.Project) error {
 		return errors.New("project is exist")
 	}
 
+	project.CreateTime = time.Now().Format(time.RFC3339Nano)
 	hs.Projects[project.Name] = project
 	return nil
 }
@@ -61,6 +62,7 @@ func (hs *HamalService) UpdateProject(project models.Project) error {
 		return errors.New("project is not exist")
 	}
 
+	project.CreateTime = time.Now().Format(time.RFC3339Nano)
 	hs.Projects[project.Name] = project
 	return nil
 }
@@ -95,6 +97,11 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 	}
 
 	return project, nil
+}
+
+func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) error {
+
+	return nil
 }
 
 func (hs *HamalService) GetApp(id string) (types.App, error) {

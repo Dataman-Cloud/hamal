@@ -30,6 +30,9 @@ func Router(middlewares ...gin.HandlerFunc) *gin.Engine {
 		hv1.GET("/projects", service.GetProjects)
 		hv1.DELETE("/projects/:name", service.DeleteProjects)
 		hv1.GET("/projects/:name", service.GetProject)
+
+		hv1.POST("/projects/execute", service.ExecuteUpdate)
+
 	}
 
 	return r
