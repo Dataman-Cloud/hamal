@@ -123,28 +123,23 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 		return project, errors.New("project is not exist")
 	}
 
+	hs.GetProjectDeployStatus(&project)
 	return project, nil
 }
 
-func (hs *HamalService) GetProjectDeployStatus(project models.Project) {
+func (hs *HamalService) GetProjectDeployStatus(project *models.Project) {
 	for _, application := range project.Applications {
-		app, err := hs.GetApp(application.App.AppID)
-		if err != nil {
-			_ = app.State
-		}
+		status, stage := hs.GetAppDeployStatus(project.Name, application)
+		application.CurrentStage = stage
+		application.Status = status
 	}
 
 }
 
-func (hs *HamalService) GetAppDeployStatus(projectName string, application models.AppUpdateStage) (int, error) {
+func (hs *HamalService) GetAppDeployStatus(projectName string, application models.AppUpdateStage) (string, int64) {
 	app, err := hs.GetApp(application.App.AppID)
 	if err != nil {
-		return 0, err
-	}
-	cstage := hs.CurrentStage[fmt.Sprintf("%s%s", projectName, application.App.AppID)]
-	var stageCount int64
-	for i := int64(0); i <= cstage; i++ {
-		stageCount += application.RollingUpdatePolicy[i].InstancesToUpdate
+		return "not_found", 0
 	}
 
 	var appCurrentVersion int64
@@ -154,12 +149,15 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 		}
 	}
 
-	if appCurrentVersion < stageCount+1 {
-		return DeployIng, nil
-	} else {
-		return DeploySuccess, nil
+	var stageCount int64
+	for stageNum, rp := range application.RollingUpdatePolicy {
+		stageCount += rp.InstancesToUpdate
+		if appCurrentVersion <= stageCount+1 {
+			return app.State, int64(stageNum)
+		}
 	}
-	return 0, nil
+
+	return "unknown", 0
 }
 
 func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) error {
@@ -174,6 +172,10 @@ func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) erro
 	project, ok := hs.Projects[project_name]
 	if !ok {
 		return errors.New("project " + project_name + " not exist")
+	}
+
+	if stageNum > len(project.Applications.RollingUpdatePolicy) {
+		return errors.New("invalid stage num")
 	}
 
 	instance := int64(-2)
