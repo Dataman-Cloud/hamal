@@ -11,6 +11,7 @@ type Project struct {
 }
 
 type AppUpdateStage struct {
+	AppId               string            `json:"app_id"`
 	App                 types.Version     `json:"orchestration"`
 	RollingUpdatePolicy []AppUpdatePolicy `json:"rolling_update_policy"`
 	CurrentStage        int64             `json:"current_stage"`
