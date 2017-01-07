@@ -13,6 +13,7 @@ const (
 	ParamError      = "503-10001"
 	ProjectExist    = "503-10002"
 	ProjectNotExist = "503-10003"
+	UpdateError     = "503-10004"
 )
 
 type HamalControl struct {
@@ -103,6 +104,10 @@ func (hc *HamalControl) UpdateInAction(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid stage"))
 		return
 	}
-	hc.Service.UpdateInAction(project_name, app_name, stage)
+	err := hc.Service.UpdateInAction(project_name, app_name, stage)
+	if err != nil {
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
+		return
+	}
 	utils.Ok(ctx, "success")
 }

@@ -20,7 +20,8 @@ import (
 )
 
 const (
-	Apps = "/v_beta/apps"
+	Apps          = "/v_beta/apps"
+	ProceedUpdate = "/proceed-update"
 )
 
 const (
@@ -181,7 +182,7 @@ func (hs *HamalService) UpdateInAction(project_name, app_name, stage string) err
 		return errors.New("project " + project_name + " not exist")
 	}
 
-	instance := int64(-2)
+	instance := int64(0)
 	for _, app := range project.Applications {
 		if stageNum > len(app.RollingUpdatePolicy) {
 			continue
@@ -193,12 +194,12 @@ func (hs *HamalService) UpdateInAction(project_name, app_name, stage string) err
 		}
 	}
 
-	if instance == -2 {
+	if instance == 0 {
 		return errors.New("invalid stage")
 	}
 
 	req, err := http.NewRequest("PATCH",
-		fmt.Sprintf("%s%s/%s/proceed-update", hs.SwanHost, Apps, app_name),
+		fmt.Sprintf("%s%s/%s%s", hs.SwanHost, Apps, app_name, ProceedUpdate),
 		bytes.NewReader([]byte(fmt.Sprintf("{\"instances\": %d}", instance))))
 
 	if err != nil {
