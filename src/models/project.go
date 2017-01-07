@@ -34,6 +34,6 @@ type Hamal struct {
 }
 
 type RollUpdatePolicy struct {
-	AppName string `json:"app_name"`
-	Stage   int    `json:"stage"`
+	AppId string `json:"app_id"`
+	Stage int    `json:"stage"`
 }
