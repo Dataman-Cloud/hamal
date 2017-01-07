@@ -103,5 +103,6 @@ func (hc *HamalControl) UpdateInAction(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid stage"))
 		return
 	}
+	hc.Service.UpdateInAction(project_name, app_name, stage)
 	utils.Ok(ctx, "success")
 }

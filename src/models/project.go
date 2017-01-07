@@ -19,9 +19,9 @@ type AppUpdateStage struct {
 }
 
 type AppUpdatePolicy struct {
-	InstancesToUpdate int64             `json:"instances_to_update"`
-	Trigger           string            `json:"trigger"`
-	RollbackPolicy    AppRollbackPolicy `json:"rollback_policy"`
+	InstancesToUpdate int64  `json:"instances_to_update"`
+	Trigger           string `json:"trigger"`
+	//RollbackPolicy    AppRollbackPolicy `json:"rollback_policy"`
 }
 
 type AppRollbackPolicy struct {
