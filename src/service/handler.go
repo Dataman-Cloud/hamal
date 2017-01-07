@@ -23,6 +23,11 @@ const (
 	Apps = "/v_beta/apps"
 )
 
+const (
+	DeploySuccess = iota + 1
+	DeployIng
+)
+
 type HamalService struct {
 	SwanHost     string
 	Projects     map[string]models.Project
@@ -118,33 +123,43 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 		return project, errors.New("project is not exist")
 	}
 
+	return project, nil
+}
+
+func (hs *HamalService) GetProjectDeployStatus(project models.Project) {
 	for _, application := range project.Applications {
 		app, err := hs.GetApp(application.App.AppID)
 		if err != nil {
-			continue
+			_ = app.State
 		}
-		cstage := hs.CurrentStage[fmt.Sprintf("%s%s", name, application.App.AppID)]
-		var stageCount int64
-		for i := int64(0); i <= cstage; i++ {
-			stageCount += application.RollingUpdatePolicy[i].InstancesToUpdate
-		}
-
-		var appCurrentVersion int64
-		for _, task := range app.Tasks {
-			if task.VersionID == app.CurrentVersion.ID {
-				appCurrentVersion += 1
-			}
-		}
-
-		if appCurrentVersion == stageCount+1 {
-			// TODO deploy success
-		} else {
-			// TODO deploying ...
-		}
-
 	}
 
-	return project, nil
+}
+
+func (hs *HamalService) GetAppDeployStatus(projectName string, application models.AppUpdateStage) (int, error) {
+	app, err := hs.GetApp(application.App.AppID)
+	if err != nil {
+		return 0, err
+	}
+	cstage := hs.CurrentStage[fmt.Sprintf("%s%s", projectName, application.App.AppID)]
+	var stageCount int64
+	for i := int64(0); i <= cstage; i++ {
+		stageCount += application.RollingUpdatePolicy[i].InstancesToUpdate
+	}
+
+	var appCurrentVersion int64
+	for _, task := range app.Tasks {
+		if task.VersionID == app.CurrentVersion.ID {
+			appCurrentVersion += 1
+		}
+	}
+
+	if appCurrentVersion < stageCount+1 {
+		return DeployIng, nil
+	} else {
+		return DeploySuccess, nil
+	}
+	return 0, nil
 }
 
 func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) error {
