@@ -100,8 +100,7 @@ func (hc *HamalControl) RollingUpdate(ctx *gin.Context) {
 		return
 	}
 
-	stage := data.Stage
-	err := hc.Service.RollingUpdate(projectName, appId, stage)
+	err := hc.Service.RollingUpdate(projectName, appId)
 	if err != nil {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
 		return
