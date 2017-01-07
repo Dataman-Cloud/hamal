@@ -26,9 +26,9 @@ func Router(middlewares ...gin.HandlerFunc) *gin.Engine {
 	{
 		hv1.GET("/ping", service.Ping)
 		hv1.POST("/projects", service.CreateProject)
-		hv1.PUT("/projects", service.UpdateProject)
+		//hv1.PUT("/projects", service.UpdateProject)
 		hv1.GET("/projects", service.GetProjects)
-		hv1.DELETE("/projects/:name", service.DeleteProjects)
+		//hv1.DELETE("/projects/:name", service.DeleteProjects)
 		hv1.GET("/projects/:name", service.GetProject)
 
 		hv1.POST("/projects/execute", service.ExecuteUpdate)
