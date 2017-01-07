@@ -88,17 +88,19 @@ func (hc *HamalControl) GetProject(ctx *gin.Context) {
 
 func (hc *HamalControl) RollingUpdate(ctx *gin.Context) {
 	projectName := ctx.Param("name")
-	appName := ctx.Query("app_name")
+	var data models.RollUpdatePolicy
+	if err := ctx.BindJSON(&data); err != nil {
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
+		return
+	}
+
+	appName := data.AppName
 	if appName == "" {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid app_name"))
 		return
 	}
 
-	stage := ctx.Query("stage")
-	if stage == "" {
-		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid stage"))
-		return
-	}
+	stage := data.Stage
 	err := hc.Service.RollingUpdate(projectName, appName, stage)
 	if err != nil {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
