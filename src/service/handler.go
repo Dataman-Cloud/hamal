@@ -94,7 +94,7 @@ func (hs *HamalService) UpdateProject(project models.Project) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 	if _, ok := hs.Projects[project.Name]; !ok {
-		return errors.New("project is not exist")
+		return errors.New("project " + project.Name + " is not exist")
 	}
 
 	project.CreateTime = time.Now().Format(time.RFC3339Nano)
@@ -107,6 +107,7 @@ func (hs *HamalService) GetProjects() []models.Project {
 	defer hs.PMutex.Unlock()
 	var projects []models.Project
 	for _, v := range hs.Projects {
+		hs.GetProjectDeployStatus(&v)
 		projects = append(projects, v)
 	}
 	return projects
@@ -116,7 +117,7 @@ func (hs *HamalService) DeleteProject(name string) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 	if _, ok := hs.Projects[name]; !ok {
-		return errors.New("project is not exist")
+		return errors.New("project " + name + " is not exist")
 	}
 
 	delete(hs.Projects, name)
@@ -128,7 +129,7 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 	defer hs.PMutex.Unlock()
 	project, ok := hs.Projects[name]
 	if !ok {
-		return project, errors.New("project is not exist")
+		return project, errors.New("project " + name + " is not exist")
 	}
 
 	hs.GetProjectDeployStatus(&project)
@@ -168,7 +169,7 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	return "unknown", 0
 }
 
-func (hs *HamalService) UpdateInAction(project_name, app_name, stage string) error {
+func (hs *HamalService) UpdateInAction(projectName, appName, stage string) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 
@@ -177,9 +178,9 @@ func (hs *HamalService) UpdateInAction(project_name, app_name, stage string) err
 		return err
 	}
 
-	project, ok := hs.Projects[project_name]
+	project, ok := hs.Projects[projectName]
 	if !ok {
-		return errors.New("project " + project_name + " not exist")
+		return errors.New("project " + projectName + " not exist")
 	}
 
 	instance := int64(0)
@@ -188,7 +189,7 @@ func (hs *HamalService) UpdateInAction(project_name, app_name, stage string) err
 			continue
 		}
 
-		if app.AppId == app_name {
+		if app.AppId == appName {
 			instance = app.RollingUpdatePolicy[stageNum].InstancesToUpdate
 			break
 		}
@@ -199,7 +200,7 @@ func (hs *HamalService) UpdateInAction(project_name, app_name, stage string) err
 	}
 
 	req, err := http.NewRequest("PATCH",
-		fmt.Sprintf("%s%s/%s%s", hs.SwanHost, Apps, app_name, ProceedUpdate),
+		fmt.Sprintf("%s%s/%s%s", hs.SwanHost, Apps, appName, ProceedUpdate),
 		bytes.NewReader([]byte(fmt.Sprintf("{\"instances\": %d}", instance))))
 
 	if err != nil {
