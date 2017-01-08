@@ -60,6 +60,15 @@ func (hs *HamalService) CreateOrUpdateProject(project models.Project) error {
 	if _, ok := hs.Projects[project.Name]; ok {
 		return errors.New("project is exist")
 	}
+	for _, app := range project.Applications {
+		as, err := hs.GetApp(app.AppId)
+		if err != nil {
+			return err
+		}
+		if as.State != "normal" {
+			return errors.New("app state is normal can't update")
+		}
+	}
 
 	for _, app := range project.Applications {
 		body, _ := json.Marshal(app.App)
