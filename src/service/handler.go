@@ -158,7 +158,8 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 		}
 	}
 
-	if appCurrentVersion == int64(len(app.Tasks)) {
+	versions, _ := hs.GetAppVersions(application.AppId)
+	if appCurrentVersion == int64(len(app.Tasks)) && len(versions) > 0 {
 		return DeploySuccess, int64(len(application.RollingUpdatePolicy))
 	}
 
@@ -224,10 +225,19 @@ func (hs *HamalService) GetApp(id string) (types.App, error) {
 	if err != nil {
 		return app, err
 	}
-	data, err := utils.ReadResponseBody(resp)
-	if err != nil {
-		return app, err
-	}
+	data, _ := utils.ReadResponseBody(resp)
 	err = json.Unmarshal(data, &app)
 	return app, err
+}
+
+func (hs *HamalService) GetAppVersions(appId string) ([]types.Version, error) {
+	var versions []types.Version
+	resp, err := hs.Client.Get(fmt.Sprintf("%s%s/%s/versions", hs.SwanHost, Apps, appId))
+	if err != nil {
+		return versions, err
+	}
+
+	data, _ := utils.ReadResponseBody(resp)
+	err = json.Unmarshal(data, &versions)
+	return versions, err
 }
