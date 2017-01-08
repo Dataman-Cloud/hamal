@@ -160,16 +160,16 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 		return Undefined, 0
 	}
 
-	var appCurrentVersion int64
-	for _, task := range app.Tasks {
-		if app.ProposedVersion != nil && task.VersionID == app.ProposedVersion.ID {
-			appCurrentVersion += 1
-		}
+	versions, _ := hs.GetAppVersions(application.AppId)
+	if app.ProposedVersion == nil && len(versions) > 0 {
+		return DeploySuccess, int64(len(application.RollingUpdatePolicy))
 	}
 
-	versions, _ := hs.GetAppVersions(application.AppId)
-	if appCurrentVersion == int64(len(app.Tasks)) && len(versions) > 0 {
-		return DeploySuccess, int64(len(application.RollingUpdatePolicy))
+	var appCurrentVersion int64
+	for _, task := range app.Tasks {
+		if task.VersionID == app.ProposedVersion.ID {
+			appCurrentVersion += 1
+		}
 	}
 
 	var stageCount int64
