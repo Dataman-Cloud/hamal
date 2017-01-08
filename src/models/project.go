@@ -14,7 +14,7 @@ type AppUpdateStage struct {
 	AppId               string            `json:"app_id"`
 	App                 types.Version     `json:"orchestration"`
 	RollingUpdatePolicy []AppUpdatePolicy `json:"rolling_update_policy"`
-	CurrentStage        int64             `json:"current_stage"`
+	NextStage           int64             `json:"next_stage"`
 	Status              string            `json:"status"`
 }
 
