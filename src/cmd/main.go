@@ -11,7 +11,7 @@ import (
 
 func main() {
 	hamal := cli.NewApp()
-	hamal.Name = "hamal cl"
+	hamal.Name = "hamal client"
 	hamal.Usage = "dataman hamal command-line"
 	hamal.Version = "0.1"
 
