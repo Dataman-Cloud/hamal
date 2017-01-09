@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -21,10 +22,11 @@ const (
 )
 
 type HamalService struct {
-	SwanHost string
-	Projects map[string]models.Project
-	Client   *http.Client
-	PMutex   *sync.Mutex
+	SwanHost           string
+	Projects           map[string]models.Project
+	ProjectExecHistory map[string][]models.ExecHistory
+	Client             *http.Client
+	PMutex             *sync.Mutex
 }
 
 func InitHamalService() *HamalService {
@@ -34,8 +36,9 @@ func InitHamalService() *HamalService {
 		return nil
 	}
 	return &HamalService{
-		SwanHost: u.String(),
-		Projects: make(map[string]models.Project),
+		SwanHost:           u.String(),
+		Projects:           make(map[string]models.Project),
+		ProjectExecHistory: make(map[string][]models.ExecHistory),
 		Client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -50,8 +53,25 @@ func (hs *HamalService) CreateProject(project models.Project) error {
 		return errors.New("project is exist")
 	}
 
+	body, _ := json.Marshal(project)
+	req, err := http.NewRequest("PUT", hs.SwanHost+Apps+"/"+project.Applications.App.ID, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+
+	_, err = hs.Client.Do(req)
+	if err != nil {
+		return err
+	}
+
 	project.CreateTime = time.Now().Format(time.RFC3339Nano)
 	hs.Projects[project.Name] = project
+	hs.ProjectExecHistory[project.Name] = append(
+		hs.ProjectExecHistory[project.Name],
+		models.ExecHistory{
+			Time: time.Now().Format(time.RFC3339Nano),
+		},
+	)
 	return nil
 }
 
@@ -72,6 +92,7 @@ func (hs *HamalService) GetProjects() []models.Project {
 	defer hs.PMutex.Unlock()
 	var projects []models.Project
 	for _, v := range hs.Projects {
+		v.UpdateHistory = hs.ProjectExecHistory[v.Name]
 		projects = append(projects, v)
 	}
 	return projects
@@ -93,6 +114,7 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 	defer hs.PMutex.Unlock()
 	project, ok := hs.Projects[name]
 	if !ok {
+		project.UpdateHistory = hs.ProjectExecHistory[project.Name]
 		return project, errors.New("project is not exist")
 	}
 

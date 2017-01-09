@@ -5,9 +5,10 @@ import (
 )
 
 type Project struct {
-	Name         string         `json:"name"`
-	CreateTime   string         `json:"createtime"`
-	Applications AppUpdateStage `json:"applications"`
+	Name          string         `json:"name"`
+	CreateTime    string         `json:"createtime"`
+	Applications  AppUpdateStage `json:"applications"`
+	UpdateHistory []ExecHistory  `json:"update_history"`
 }
 
 type AppUpdateStage struct {
@@ -24,4 +25,9 @@ type AppUpdatePolicy struct {
 type AppRollbackPolicy struct {
 	AutoRollback      bool  `json:"auto_rollback"`
 	RollbackCondition int64 `json:"rollback_condition"`
+}
+
+type ExecHistory struct {
+	Time   string `json:"time"`
+	Status string `json:"status"`
 }
