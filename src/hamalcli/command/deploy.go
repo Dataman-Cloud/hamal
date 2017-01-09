@@ -40,22 +40,54 @@ func DeployAction(c *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
-		if err = deployProject(content); err != nil {
+		var hamalJSON types.Hamal
+		if err = json.Unmarshal(content, &hamalJSON); err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
+		}
+		project, err := getProject(hamalJSON.ProjectName)
+		if err != nil {
+			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
+		}
+		if project == nil {
+			if err = createProject(content); err != nil {
+				return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
+			}
 		}
 	}
 	return nil
 }
 
-func getProject(hamalByte []byte) error {
-	var hamalJSON types.Hamal
-	if err := json.Unmarshal(hamalByte, &hamalJSON); err != nil {
-		return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
+func getProject(projectName string) (interface{}, error) {
+	type responseBodyType struct {
+		Code int         `json:"code"`
+		Data interface{} `json:"data"`
 	}
-	return nil
+
+	resp, err := http.Get(backend + "/projects?name=" + projectName)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode == http.StatusOK {
+		var respBody responseBodyType
+		if err = json.Unmarshal(body, &respBody); err != nil {
+			return nil, err
+		} else {
+			if respBody.Code != 0 {
+				return respBody.Data, nil
+			}
+		}
+	} else {
+		return nil, errors.New(string(body))
+	}
+	return nil, nil
 }
 
-func deployProject(hamalByte []byte) error {
+func createProject(hamalByte []byte) error {
 	req, err := http.NewRequest("POST", backend+"/projects", bytes.NewBuffer(hamalByte))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -74,4 +106,7 @@ func deployProject(hamalByte []byte) error {
 	}
 
 	return nil
+}
+
+func updateProject() {
 }
