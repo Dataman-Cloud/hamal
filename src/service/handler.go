@@ -24,11 +24,11 @@ const (
 )
 
 type HamalService struct {
-	SwanHost           string
-	Projects           map[string]models.Project
-	ProjectExecHistory map[string][]models.ExecHistory
-	Client             *http.Client
-	PMutex             *sync.Mutex
+	SwanHost     string
+	Projects     map[string]models.Project
+	CurrentStage map[string]int64
+	Client       *http.Client
+	PMutex       *sync.Mutex
 }
 
 func InitHamalService() *HamalService {
@@ -38,9 +38,9 @@ func InitHamalService() *HamalService {
 		return nil
 	}
 	return &HamalService{
-		SwanHost:           u.String(),
-		Projects:           make(map[string]models.Project),
-		ProjectExecHistory: make(map[string][]models.ExecHistory),
+		SwanHost:     u.String(),
+		Projects:     make(map[string]models.Project),
+		CurrentStage: make(map[string]int64),
 		Client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -55,7 +55,7 @@ func (hs *HamalService) CreateProject(project models.Project) error {
 		return errors.New("project is exist")
 	}
 
-	for _, app := range project.Applications {
+	/*for _, app := range project.Applications {
 		body, _ := json.Marshal(app.App)
 		req, err := http.NewRequest("PUT",
 			hs.SwanHost+Apps+"/"+app.App.AppID,
@@ -70,16 +70,10 @@ func (hs *HamalService) CreateProject(project models.Project) error {
 			log.Error(err)
 			break
 		}
-	}
+	}*/
 
 	project.CreateTime = time.Now().Format(time.RFC3339Nano)
 	hs.Projects[project.Name] = project
-	hs.ProjectExecHistory[project.Name] = append(
-		hs.ProjectExecHistory[project.Name],
-		models.ExecHistory{
-			Time: time.Now().Format(time.RFC3339Nano),
-		},
-	)
 	return nil
 }
 
@@ -100,7 +94,6 @@ func (hs *HamalService) GetProjects() []models.Project {
 	defer hs.PMutex.Unlock()
 	var projects []models.Project
 	for _, v := range hs.Projects {
-		v.UpdateHistory = hs.ProjectExecHistory[v.Name]
 		projects = append(projects, v)
 	}
 	return projects
@@ -122,8 +115,33 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 	defer hs.PMutex.Unlock()
 	project, ok := hs.Projects[name]
 	if !ok {
-		project.UpdateHistory = hs.ProjectExecHistory[project.Name]
 		return project, errors.New("project is not exist")
+	}
+
+	for _, application := range project.Applications {
+		app, err := hs.GetApp(application.App.AppID)
+		if err != nil {
+			continue
+		}
+		cstage := hs.CurrentStage[fmt.Sprintf("%s%s", name, application.App.AppID)]
+		var stageCount int64
+		for i := int64(0); i <= cstage; i++ {
+			stageCount += application.RollingUpdatePolicy[i].InstancesToUpdate
+		}
+
+		var appCurrentVersion int64
+		for _, task := range app.Tasks {
+			if task.VersionID == app.CurrentVersion.ID {
+				appCurrentVersion += 1
+			}
+		}
+
+		if appCurrentVersion == stageCount+1 {
+			// TODO deploy success
+		} else {
+			// TODO deploying ...
+		}
+
 	}
 
 	return project, nil
@@ -143,7 +161,7 @@ func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) erro
 		return errors.New("project " + project_name + " not exist")
 	}
 
-	instance := int64(-1)
+	instance := int64(-2)
 	for _, app := range project.Applications {
 		if app.App.AppID == app_name {
 			instance = app.RollingUpdatePolicy[stageNum].InstancesToUpdate
@@ -151,7 +169,7 @@ func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) erro
 		}
 	}
 
-	if instance == -1 {
+	if instance == -2 {
 		return errors.New("invalid stage")
 	}
 
@@ -167,13 +185,6 @@ func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) erro
 	if err != nil {
 		return err
 	}
-
-	hs.ProjectExecHistory[project_name] = append(
-		hs.ProjectExecHistory[project_name],
-		models.ExecHistory{
-			Time: time.Now().Format(time.RFC3339Nano),
-		},
-	)
 
 	return nil
 }

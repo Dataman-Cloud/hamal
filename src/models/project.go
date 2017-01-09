@@ -5,10 +5,9 @@ import (
 )
 
 type Project struct {
-	Name          string           `json:"name"`
-	CreateTime    string           `json:"createtime"`
-	Applications  []AppUpdateStage `json:"applications"`
-	UpdateHistory []ExecHistory    `json:"update_history"`
+	Name         string           `json:"name"`
+	CreateTime   string           `json:"createtime"`
+	Applications []AppUpdateStage `json:"applications"`
 }
 
 type AppUpdateStage struct {
