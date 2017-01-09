@@ -16,7 +16,7 @@ func main() {
 	hamal.Version = "0.1"
 
 	hamal.Commands = []cli.Command{
-		command.NewCreateCommand(),
+		command.NewDeployCommand(),
 	}
 	hamal.Run(os.Args)
 }
