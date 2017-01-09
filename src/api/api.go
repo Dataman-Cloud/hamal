@@ -10,11 +10,12 @@ import (
 )
 
 const (
-	ParamError      = "503-10001"
-	ProjectExist    = "503-10002"
-	ProjectNotExist = "503-10003"
-	UpdateError     = "503-10004"
-	GetAppError     = "503-10005"
+	ParamError         = "503-10001"
+	ProjectExist       = "503-10002"
+	ProjectNotExist    = "503-10003"
+	UpdateError        = "503-10004"
+	GetAppError        = "503-10005"
+	GetAppVersionError = "503-10006"
 )
 
 type HamalControl struct {
@@ -39,7 +40,7 @@ func (hc *HamalControl) CreateOrUpdateProject(ctx *gin.Context) {
 		return
 	}
 
-	if err := hc.Service.CreateOrUpdateProject(project); err != nil {
+	if err := hc.Service.CreateOrUpdateProject(&project); err != nil {
 		log.Error(err)
 		utils.ErrorResponse(ctx, utils.NewError(ProjectExist, err))
 		return
@@ -55,7 +56,7 @@ func (hc *HamalControl) UpdateProject(ctx *gin.Context) {
 		return
 	}
 
-	if err := hc.Service.UpdateProject(project); err != nil {
+	if err := hc.Service.UpdateProject(&project); err != nil {
 		log.Error(err)
 		utils.ErrorResponse(ctx, utils.NewError(ProjectNotExist, err))
 		return
@@ -117,4 +118,14 @@ func (hc *HamalControl) GetApp(ctx *gin.Context) {
 	}
 
 	utils.Ok(ctx, app)
+}
+
+func (hc *HamalControl) GetAppVersions(ctx *gin.Context) {
+	version, err := hc.Service.GetAppVersions(ctx.Param("app_id"))
+	if err != nil {
+		utils.ErrorResponse(ctx, utils.NewError(GetAppVersionError, err))
+		return
+	}
+
+	utils.Ok(ctx, version)
 }
