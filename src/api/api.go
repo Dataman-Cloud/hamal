@@ -85,7 +85,7 @@ func (hc *HamalControl) GetProject(ctx *gin.Context) {
 	utils.Ok(ctx, project)
 }
 
-func (hc *HamalControl) ExecuteUpdate(ctx *gin.Context) {
+func (hc *HamalControl) UpdateInAction(ctx *gin.Context) {
 	project_name := ctx.Query("project_name")
 	if project_name == "" {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid project_name"))
