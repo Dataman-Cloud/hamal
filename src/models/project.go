@@ -8,12 +8,13 @@ type Project struct {
 	Name         string           `json:"name"`
 	CreateTime   string           `json:"createtime"`
 	Applications []AppUpdateStage `json:"applications"`
-	Status       int              `json:"status"`
 }
 
 type AppUpdateStage struct {
 	App                 types.Version     `json:"orchestration"`
 	RollingUpdatePolicy []AppUpdatePolicy `json:"rolling_update_policy"`
+	CurrentStage        int64             `json:"current_stage"`
+	Status              string            `json:"status"`
 }
 
 type AppUpdatePolicy struct {
