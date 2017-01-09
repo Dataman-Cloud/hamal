@@ -5,15 +5,15 @@ import (
 )
 
 type Project struct {
-	Name          string         `json:"name"`
-	CreateTime    string         `json:"createtime"`
-	Applications  AppUpdateStage `json:"applications"`
-	UpdateHistory []ExecHistory  `json:"update_history"`
+	Name          string           `json:"name"`
+	CreateTime    string           `json:"createtime"`
+	Applications  []AppUpdateStage `json:"applications"`
+	UpdateHistory []ExecHistory    `json:"update_history"`
 }
 
 type AppUpdateStage struct {
-	App                 types.Version
-	RollingUpdatePolicy []AppUpdatePolicy
+	App                 types.Version     `json:"orchestration"`
+	RollingUpdatePolicy []AppUpdatePolicy `json:"rolling_update_policy"`
 }
 
 type AppUpdatePolicy struct {

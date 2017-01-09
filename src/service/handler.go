@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -53,15 +55,21 @@ func (hs *HamalService) CreateProject(project models.Project) error {
 		return errors.New("project is exist")
 	}
 
-	body, _ := json.Marshal(project)
-	req, err := http.NewRequest("PUT", hs.SwanHost+Apps+"/"+project.Applications.App.ID, bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
+	for _, app := range project.Applications {
+		body, _ := json.Marshal(app.App)
+		req, err := http.NewRequest("PUT",
+			hs.SwanHost+Apps+"/"+app.App.AppID,
+			bytes.NewReader(body))
+		if err != nil {
+			log.Error(err)
+			break
+		}
 
-	_, err = hs.Client.Do(req)
-	if err != nil {
-		return err
+		_, err = hs.Client.Do(req)
+		if err != nil {
+			log.Error(err)
+			break
+		}
 	}
 
 	project.CreateTime = time.Now().Format(time.RFC3339Nano)
@@ -122,6 +130,50 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 }
 
 func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) error {
+	hs.PMutex.Lock()
+	defer hs.PMutex.Unlock()
+
+	stageNum, err := strconv.Atoi(stage)
+	if err != nil {
+		return err
+	}
+
+	project, ok := hs.Projects[project_name]
+	if !ok {
+		return errors.New("project " + project_name + " not exist")
+	}
+
+	instance := int64(-1)
+	for _, app := range project.Applications {
+		if app.App.AppID == app_name {
+			instance = app.RollingUpdatePolicy[stageNum].InstancesToUpdate
+			break
+		}
+	}
+
+	if instance == -1 {
+		return errors.New("invalid stage")
+	}
+
+	req, err := http.NewRequest("PATCH",
+		fmt.Sprintf("%s%s/%s/proceed-update", hs.SwanHost, Apps, project_name),
+		bytes.NewReader([]byte(fmt.Sprintf("{\"instances\": %d}", instance))))
+
+	if err != nil {
+		return err
+	}
+
+	_, err = hs.Client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	hs.ProjectExecHistory[project_name] = append(
+		hs.ProjectExecHistory[project_name],
+		models.ExecHistory{
+			Time: time.Now().Format(time.RFC3339Nano),
+		},
+	)
 
 	return nil
 }
