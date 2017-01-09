@@ -5,7 +5,6 @@ import (
 
 	"github.com/Dataman-Cloud/hamal/src/hamalcli/command"
 
-	//log "github.com/Sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
