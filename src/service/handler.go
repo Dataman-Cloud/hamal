@@ -160,8 +160,10 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	var stageCount int64
 	for stageNum, rp := range application.RollingUpdatePolicy {
 		stageCount += rp.InstancesToUpdate
-		if appCurrentVersion <= stageCount+1 {
-			return app.State, int64(stageNum)
+		if appCurrentVersion == 1 {
+			return app.State, int64(0)
+		} else if appCurrentVersion-1 == stageCount {
+			return app.State, int64(stageNum + 1)
 		}
 	}
 
@@ -180,7 +182,7 @@ func (hs *HamalService) RollingUpdate(projectName, appName string) error {
 	instance := int64(0)
 	for _, app := range project.Applications {
 		_, stage := hs.GetAppDeployStatus(project.Name, app)
-		if app.AppId == appName && int(stage) <= len(app.RollingUpdatePolicy) {
+		if app.AppId == appName && int(stage) < len(app.RollingUpdatePolicy) {
 			instance = app.RollingUpdatePolicy[stage].InstancesToUpdate
 			break
 		}
