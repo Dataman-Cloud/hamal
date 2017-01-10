@@ -180,11 +180,7 @@ func (hs *HamalService) RollingUpdate(projectName, appName string) error {
 	instance := int64(0)
 	for _, app := range project.Applications {
 		_, stage := hs.GetAppDeployStatus(project.Name, app)
-		if int(stage) > len(app.RollingUpdatePolicy) {
-			continue
-		}
-
-		if app.AppId == appName {
+		if app.AppId == appName && int(stage) <= len(app.RollingUpdatePolicy) {
 			instance = app.RollingUpdatePolicy[stage].InstancesToUpdate
 			break
 		}
