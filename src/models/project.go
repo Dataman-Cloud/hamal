@@ -28,3 +28,7 @@ type AppRollbackPolicy struct {
 	AutoRollback      bool  `json:"auto_rollback"`
 	RollbackCondition int64 `json:"rollback_condition"`
 }
+
+type Hamal struct {
+	ProjectName string `json:"project_name"`
+}

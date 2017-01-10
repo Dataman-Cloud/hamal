@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Dataman-Cloud/hamal/src/types"
+	"github.com/Dataman-Cloud/hamal/src/models"
 	"github.com/urfave/cli"
 	"io/ioutil"
 	"net/http"
@@ -13,8 +13,18 @@ import (
 
 const (
 	// TODO move me to configfile
-	backend = "127.0.0.1"
+	BACKEND        = "http://127.0.0.1:5099/v1/hamal"
+	PROJECTEXISTED = 10002
 )
+
+type responseCodeType struct {
+	Code int `json:"code"`
+}
+
+type responseBodyType struct {
+	Code int            `json:"code"`
+	Data models.Project `json:"data"`
+}
 
 func NewDeployCommand() cli.Command {
 	return cli.Command{
@@ -40,7 +50,10 @@ func DeployAction(c *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
-		var hamalJSON types.Hamal
+		if err = createProject(content); err != nil {
+			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
+		}
+		var hamalJSON models.Hamal
 		if err = json.Unmarshal(content, &hamalJSON); err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
@@ -48,22 +61,13 @@ func DeployAction(c *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
-		if project == nil {
-			if err = createProject(content); err != nil {
-				return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
-			}
-		}
+		rollingUpdateProject(project)
 	}
 	return nil
 }
 
-func getProject(projectName string) (interface{}, error) {
-	type responseBodyType struct {
-		Code int         `json:"code"`
-		Data interface{} `json:"data"`
-	}
-
-	resp, err := http.Get(backend + "/projects?name=" + projectName)
+func getProject(projectName string) (*models.Project, error) {
+	resp, err := http.Get(BACKEND + "/projects/" + projectName)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +82,7 @@ func getProject(projectName string) (interface{}, error) {
 			return nil, err
 		} else {
 			if respBody.Code != 0 {
-				return respBody.Data, nil
+				return &respBody.Data, nil
 			}
 		}
 	} else {
@@ -88,7 +92,7 @@ func getProject(projectName string) (interface{}, error) {
 }
 
 func createProject(hamalByte []byte) error {
-	req, err := http.NewRequest("POST", backend+"/projects", bytes.NewBuffer(hamalByte))
+	req, err := http.NewRequest("POST", BACKEND+"/projects", bytes.NewBuffer(hamalByte))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -99,14 +103,27 @@ func createProject(hamalByte []byte) error {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode == http.StatusOK {
+	if resp.StatusCode == http.StatusCreated {
 		fmt.Print(string(body))
 	} else {
+		var respCode responseCodeType
+		if err = json.Unmarshal(body, &respCode); err != nil {
+			return err
+		}
+		if respCode.Code == PROJECTEXISTED {
+			return nil
+		}
 		return errors.New(string(body))
 	}
 
 	return nil
 }
 
-func updateProject() {
+func rollingUpdateProject(project *models.Project) error {
+	fmt.Print("SSS")
+	for _, app := range project.Applications {
+		fmt.Print(app.CurrentStage)
+		fmt.Print(app.Status)
+	}
+	return nil
 }

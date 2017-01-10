@@ -30,7 +30,7 @@ func (hc *HamalControl) Ping(ctx *gin.Context) {
 	utils.Ok(ctx, "success")
 }
 
-func (hc *HamalControl) CreateProject(ctx *gin.Context) {
+func (hc *HamalControl) CreateOrUpdateProject(ctx *gin.Context) {
 	var project models.Project
 	if err := ctx.BindJSON(&project); err != nil {
 		log.Error("invalid param")
@@ -38,7 +38,7 @@ func (hc *HamalControl) CreateProject(ctx *gin.Context) {
 		return
 	}
 
-	if err := hc.Service.CreateProject(project); err != nil {
+	if err := hc.Service.CreateOrUpdateProject(project); err != nil {
 		log.Error(err)
 		utils.ErrorResponse(ctx, utils.NewError(ProjectExist, err))
 		return
@@ -86,13 +86,8 @@ func (hc *HamalControl) GetProject(ctx *gin.Context) {
 	utils.Ok(ctx, project)
 }
 
-func (hc *HamalControl) UpdateInAction(ctx *gin.Context) {
-	projectName := ctx.Query("project_name")
-	if projectName == "" {
-		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid project_name"))
-		return
-	}
-
+func (hc *HamalControl) RollingUpdate(ctx *gin.Context) {
+	projectName := ctx.Param("name")
 	appName := ctx.Query("app_name")
 	if appName == "" {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid app_name"))
@@ -104,7 +99,7 @@ func (hc *HamalControl) UpdateInAction(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid stage"))
 		return
 	}
-	err := hc.Service.UpdateInAction(projectName, appName, stage)
+	err := hc.Service.RollingUpdate(projectName, appName, stage)
 	if err != nil {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
 		return

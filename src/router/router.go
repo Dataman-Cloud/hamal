@@ -25,14 +25,12 @@ func Router(middlewares ...gin.HandlerFunc) *gin.Engine {
 	hv1 := r.Group("/v1/hamal")
 	{
 		hv1.GET("/ping", service.Ping)
-		hv1.POST("/projects", service.CreateProject)
+		hv1.POST("/projects", service.CreateOrUpdateProject)
 		hv1.PUT("/projects", service.UpdateProject)
 		hv1.GET("/projects", service.GetProjects)
 		//hv1.DELETE("/projects/:name", service.DeleteProjects)
 		hv1.GET("/projects/:name", service.GetProject)
-
-		hv1.POST("/projects/update-in-action", service.UpdateInAction)
-
+		hv1.PUT("/projects/:name/rollingupdate", service.RollingUpdate)
 	}
 
 	return r
