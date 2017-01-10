@@ -1,5 +1,5 @@
 package types
 
 type Hamal struct {
-	ProjectName string `json: "project_name"`
+	ProjectName string `json:"project_name"`
 }

@@ -13,7 +13,7 @@ import (
 
 const (
 	// TODO move me to configfile
-	backend = "127.0.0.1"
+	backend = "http://127.0.0.1:5099"
 )
 
 func NewDeployCommand() cli.Command {
