@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Dataman-Cloud/hamal/src/models"
-	"github.com/urfave/cli"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/Dataman-Cloud/hamal/src/models"
+
+	"github.com/urfave/cli"
 )
 
 const (
