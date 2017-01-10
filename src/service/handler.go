@@ -54,7 +54,7 @@ func InitHamalService() *HamalService {
 	}
 }
 
-func (hs *HamalService) CreateProject(project models.Project) error {
+func (hs *HamalService) CreateOrUpdateProject(project models.Project) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 	if _, ok := hs.Projects[project.Name]; ok {
@@ -169,7 +169,7 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	return "unknown", 0
 }
 
-func (hs *HamalService) UpdateInAction(projectName, appName, stage string) error {
+func (hs *HamalService) RollingUpdate(project_name, app_name, stage string) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 

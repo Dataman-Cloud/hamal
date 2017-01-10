@@ -1,0 +1,48 @@
+[
+    {
+        "id": "nginx0052-xcm-localmesos",
+        "name": "nginx0052",
+        "instances": 3,
+        "runningInstances": 3,
+        "runAs": "xcm",
+        "priority": 100,
+        "clusterID": "localmesos",
+        "created": "2017-01-07T15:58:11.323242869+08:00",
+        "updated": "2017-01-07T16:00:19.953535332+08:00",
+        "mode": "replicates",
+        "state": "normal",
+        "currentVersion": {
+            "id": "1483775891",
+            "appID": "nginx0052",
+            "cpus": 0.01,
+            "mem": 5,
+            "instances": 3,
+            "runAs": "xcm",
+            "priority": 100,
+            "container": {
+                "type": "DOCKER",
+                "docker": {
+                    "image": "nginx:1.10",
+                    "network": "BRIDGE",
+                    "parameters": [
+                        {
+                            "key": "label",
+                            "value": "APP_ID=nginx"
+                        }
+                    ],
+                    "privileged": true
+                }
+            },
+            "env": {
+                "DB": "mysql"
+            },
+            "killPolicy": {
+                "duration": 5
+            },
+            "mode": "replicates"
+        },
+        "env": {
+            "DB": "mysql"
+        }
+    }
+]
