@@ -94,14 +94,14 @@ func (hc *HamalControl) RollingUpdate(ctx *gin.Context) {
 		return
 	}
 
-	appName := data.AppName
-	if appName == "" {
-		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid app_name"))
+	appId := data.AppId
+	if appId == "" {
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid app_id"))
 		return
 	}
 
 	stage := data.Stage
-	err := hc.Service.RollingUpdate(projectName, appName, stage)
+	err := hc.Service.RollingUpdate(projectName, appId, stage)
 	if err != nil {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
 		return
