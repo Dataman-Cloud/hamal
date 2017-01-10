@@ -11,11 +11,12 @@ import (
 	"github.com/Dataman-Cloud/hamal/src/models"
 
 	"github.com/urfave/cli"
+	"strings"
 )
 
 const (
 	// TODO move me to configfile
-	BACKEND        = "http://127.0.0.1:5099/v1/hamal"
+	BACKEND        = "http://192.168.1.51:5099/v1/hamal"
 	PROJECTEXISTED = 10002
 )
 
@@ -59,7 +60,7 @@ func DeployAction(c *cli.Context) error {
 		if err = json.Unmarshal(content, &hamalJSON); err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
-		project, err := getProject(hamalJSON.ProjectName)
+		project, err := getProject(hamalJSON.Name)
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
@@ -83,7 +84,7 @@ func getProject(projectName string) (*models.Project, error) {
 		if err = json.Unmarshal(body, &respBody); err != nil {
 			return nil, err
 		} else {
-			if respBody.Code != 0 {
+			if respBody.Code == 0 {
 				return &respBody.Data, nil
 			}
 		}
@@ -122,10 +123,22 @@ func createProject(hamalByte []byte) error {
 }
 
 func rollingUpdateProject(project *models.Project) error {
-	fmt.Print("SSS")
+	client := &http.Client{}
+	// TODO (wtzhou) we can support PER-app-PER-project only now
 	for _, app := range project.Applications {
-		fmt.Print(app.CurrentStage)
-		fmt.Print(app.Status)
+		req, err := http.NewRequest("PUT", BACKEND+"/projects/"+project.Name+"/rollingupdate", strings.NewReader(`{"app_id":"`+app.AppId+`"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		if resp.StatusCode == http.StatusOK {
+			fmt.Print(string(body))
+		} else {
+			return errors.New(string(body))
+		}
 	}
 	return nil
 }
