@@ -87,14 +87,14 @@ func (hc *HamalControl) GetProject(ctx *gin.Context) {
 }
 
 func (hc *HamalControl) UpdateInAction(ctx *gin.Context) {
-	project_name := ctx.Query("project_name")
-	if project_name == "" {
+	projectName := ctx.Query("project_name")
+	if projectName == "" {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid project_name"))
 		return
 	}
 
-	app_name := ctx.Query("app_name")
-	if app_name == "" {
+	appName := ctx.Query("app_name")
+	if appName == "" {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid app_name"))
 		return
 	}
@@ -104,7 +104,7 @@ func (hc *HamalControl) UpdateInAction(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid stage"))
 		return
 	}
-	err := hc.Service.UpdateInAction(project_name, app_name, stage)
+	err := hc.Service.UpdateInAction(projectName, appName, stage)
 	if err != nil {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
 		return
