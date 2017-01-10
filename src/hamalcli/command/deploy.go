@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Dataman-Cloud/hamal/src/models"
-	log "github.com/Sirupsen/logrus"
 	"github.com/urfave/cli"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +16,10 @@ const (
 	BACKEND        = "http://127.0.0.1:5099/v1/hamal"
 	PROJECTEXISTED = 10002
 )
+
+type responseCodeType struct {
+	Code int `json:"code"`
+}
 
 type responseBodyType struct {
 	Code int            `json:"code"`
@@ -103,11 +106,11 @@ func createProject(hamalByte []byte) error {
 	if resp.StatusCode == http.StatusCreated {
 		fmt.Print(string(body))
 	} else {
-		var respBody responseBodyType
-		if err = json.Unmarshal(body, &respBody); err != nil {
+		var respCode responseCodeType
+		if err = json.Unmarshal(body, &respCode); err != nil {
 			return err
 		}
-		if respBody.Code == PROJECTEXISTED {
+		if respCode.Code == PROJECTEXISTED {
 			return nil
 		}
 		return errors.New(string(body))
@@ -117,9 +120,10 @@ func createProject(hamalByte []byte) error {
 }
 
 func rollingUpdateProject(project *models.Project) error {
+	fmt.Print("SSS")
 	for _, app := range project.Applications {
-		log.Info(app.CurrentStage)
-		log.Info(app.Status)
+		fmt.Print(app.CurrentStage)
+		fmt.Print(app.Status)
 	}
 	return nil
 }

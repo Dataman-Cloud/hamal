@@ -1,48 +1,76 @@
-[
-    {
-        "id": "nginx0052-xcm-localmesos",
-        "name": "nginx0052",
-        "instances": 3,
-        "runningInstances": 3,
-        "runAs": "xcm",
-        "priority": 100,
-        "clusterID": "localmesos",
-        "created": "2017-01-07T15:58:11.323242869+08:00",
-        "updated": "2017-01-07T16:00:19.953535332+08:00",
-        "mode": "replicates",
-        "state": "normal",
-        "currentVersion": {
-            "id": "1483775891",
-            "appID": "nginx0052",
-            "cpus": 0.01,
-            "mem": 5,
-            "instances": 3,
-            "runAs": "xcm",
-            "priority": 100,
-            "container": {
-                "type": "DOCKER",
-                "docker": {
-                    "image": "nginx:1.10",
-                    "network": "BRIDGE",
-                    "parameters": [
-                        {
-                            "key": "label",
-                            "value": "APP_ID=nginx"
-                        }
-                    ],
-                    "privileged": true
+{
+    "name": "nginxtest",
+    "applications": [
+        {
+            "app_id": "nginx0052-xcm-localmesos",
+            "orchestration": {
+                "appID": "nginx0052",
+                "cmd": null,
+                "cpus": 0.05,
+                "mem": 6,
+                "disk": 0,
+                "runAs": "xcm",
+                "instances": 5,
+                "container": {
+                    "docker": {
+                        "image": "blackicebird/2048",
+                        "network": "BRIDGE",
+                        "forcePullImage": false,
+                        "privileged": true,
+                        "parameters": [
+                            {
+                                "key": "label",
+                                "value": "APP_ID=nginx"
+                            }
+                        ],
+                        "portMappings": [
+                            {
+                                "containerPort": 80,
+                                "protocol": "tcp",
+                                "name": "web"
+                            }
+                        ]
+                    },
+                    "type": "DOCKER"
+                },
+                "uris": [
+                ],
+                "env": {
+                    "DB": "mysql"
+                },
+                "labels": {
+                    "USER_ID": "1"
+                },
+                "killPolicy": {
+                    "duration": 5
+                },
+                "healthChecks": [
+                    {
+                        "protocol": "TCP",
+                        "path": "/",
+                        "delaySeconds": 15,
+                        "gracePeriodSeconds": 5,
+                        "portName": "web",
+                        "intervalSeconds": 3,
+                        "timeoutSeconds": 3,
+                        "consecutiveFailures": 5
+                    }
+                ],
+                "updatePolicy": {
+                    "updateDelay": 5,
+                    "maxRetries": 3,
+                    "maxFailovers": 3,
+                    "action": "rollback"
                 }
             },
-            "env": {
-                "DB": "mysql"
-            },
-            "killPolicy": {
-                "duration": 5
-            },
-            "mode": "replicates"
-        },
-        "env": {
-            "DB": "mysql"
+            "rolling_update_policy": [
+                {
+                    "instances_to_update": 1
+                },
+                {
+                    "instances_to_update": 1
+                }
+            ]
         }
-    }
-]
+    ]
+}

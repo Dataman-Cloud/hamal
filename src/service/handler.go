@@ -169,7 +169,7 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	return "unknown", 0
 }
 
-func (hs *HamalService) RollingUpdate(project_name, app_name, stage string) error {
+func (hs *HamalService) RollingUpdate(projectName, appName, stage string) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 
