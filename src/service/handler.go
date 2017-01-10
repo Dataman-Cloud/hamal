@@ -168,7 +168,7 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	return "unknown", 0
 }
 
-func (hs *HamalService) RollingUpdate(projectName, appName string, stage int) error {
+func (hs *HamalService) RollingUpdate(projectName, appName string) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 
@@ -179,7 +179,8 @@ func (hs *HamalService) RollingUpdate(projectName, appName string, stage int) er
 
 	instance := int64(0)
 	for _, app := range project.Applications {
-		if stage > len(app.RollingUpdatePolicy) {
+		_, stage := hs.GetAppDeployStatus(project.Name, app)
+		if int(stage) > len(app.RollingUpdatePolicy) {
 			continue
 		}
 
