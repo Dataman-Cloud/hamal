@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
 	"time"
 
@@ -153,7 +152,7 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 
 	var appCurrentVersion int64
 	for _, task := range app.Tasks {
-		if task.VersionID == app.ProposedVersion.ID {
+		if app.ProposedVersion != nil && task.VersionID == app.ProposedVersion.ID {
 			appCurrentVersion += 1
 		}
 	}
@@ -169,14 +168,9 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	return "unknown", 0
 }
 
-func (hs *HamalService) RollingUpdate(projectName, appName, stage string) error {
+func (hs *HamalService) RollingUpdate(projectName, appName string, stage int) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
-
-	stageNum, err := strconv.Atoi(stage)
-	if err != nil {
-		return err
-	}
 
 	project, ok := hs.Projects[projectName]
 	if !ok {
@@ -185,12 +179,12 @@ func (hs *HamalService) RollingUpdate(projectName, appName, stage string) error 
 
 	instance := int64(0)
 	for _, app := range project.Applications {
-		if stageNum > len(app.RollingUpdatePolicy) {
+		if stage > len(app.RollingUpdatePolicy) {
 			continue
 		}
 
 		if app.AppId == appName {
-			instance = app.RollingUpdatePolicy[stageNum].InstancesToUpdate
+			instance = app.RollingUpdatePolicy[stage].InstancesToUpdate
 			break
 		}
 	}
