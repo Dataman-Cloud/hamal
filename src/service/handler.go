@@ -135,23 +135,23 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 }
 
 func (hs *HamalService) GetProjectDeployStatus(project *models.Project) {
-	for _, application := range project.Applications {
+	for n, application := range project.Applications {
 		status, stage := hs.GetAppDeployStatus(project.Name, application)
-		application.CurrentStage = stage
-		application.Status = status
+		project.Applications[n].CurrentStage = stage
+		project.Applications[n].Status = status
 	}
 
 }
 
 func (hs *HamalService) GetAppDeployStatus(projectName string, application models.AppUpdateStage) (string, int64) {
-	app, err := hs.GetApp(application.App.AppID)
+	app, err := hs.GetApp(application.AppId)
 	if err != nil {
 		return "not_found", 0
 	}
 
 	var appCurrentVersion int64
 	for _, task := range app.Tasks {
-		if task.VersionID == app.CurrentVersion.ID {
+		if task.VersionID == app.ProposedVersion.ID {
 			appCurrentVersion += 1
 		}
 	}
@@ -167,7 +167,7 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	return "unknown", 0
 }
 
-func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) error {
+func (hs *HamalService) UpdateInAction(project_name, app_name, stage string) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 
@@ -187,7 +187,7 @@ func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) erro
 			continue
 		}
 
-		if app.App.AppID == app_name {
+		if app.AppId == app_name {
 			instance = app.RollingUpdatePolicy[stageNum].InstancesToUpdate
 			break
 		}
@@ -198,16 +198,21 @@ func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) erro
 	}
 
 	req, err := http.NewRequest("PATCH",
-		fmt.Sprintf("%s%s/%s/proceed-update", hs.SwanHost, Apps, project_name),
+		fmt.Sprintf("%s%s/%s/proceed-update", hs.SwanHost, Apps, app_name),
 		bytes.NewReader([]byte(fmt.Sprintf("{\"instances\": %d}", instance))))
 
 	if err != nil {
 		return err
 	}
+	req.Header.Add("Content-Type", "application/json")
 
-	_, err = hs.Client.Do(req)
+	resp, err := hs.Client.Do(req)
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		data, _ := utils.ReadResponseBody(resp)
+		return errors.New(string(data))
 	}
 
 	return nil
