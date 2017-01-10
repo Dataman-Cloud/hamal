@@ -60,22 +60,29 @@ func (hs *HamalService) CreateProject(project models.Project) error {
 		return errors.New("project is exist")
 	}
 
-	/*for _, app := range project.Applications {
+	for _, app := range project.Applications {
 		body, _ := json.Marshal(app.App)
 		req, err := http.NewRequest("PUT",
-			hs.SwanHost+Apps+"/"+app.App.AppID,
+			hs.SwanHost+Apps+"/"+app.AppId,
 			bytes.NewReader(body))
+		req.Header.Add("Content-Type", "application/json")
 		if err != nil {
 			log.Error(err)
-			break
+			continue
 		}
 
-		_, err = hs.Client.Do(req)
+		resp, err := hs.Client.Do(req)
 		if err != nil {
 			log.Error(err)
-			break
+			continue
 		}
-	}*/
+
+		if resp.StatusCode != http.StatusOK {
+			data, _ := utils.ReadResponseBody(resp)
+			log.Errorf("%s", data)
+			continue
+		}
+	}
 
 	project.CreateTime = time.Now().Format(time.RFC3339Nano)
 	hs.Projects[project.Name] = project
@@ -174,12 +181,12 @@ func (hs *HamalService) ExecuteUpdate(project_name, app_name, stage string) erro
 		return errors.New("project " + project_name + " not exist")
 	}
 
-	if stageNum > len(project.Applications.RollingUpdatePolicy) {
-		return errors.New("invalid stage num")
-	}
-
 	instance := int64(-2)
 	for _, app := range project.Applications {
+		if stageNum > len(app.RollingUpdatePolicy) {
+			continue
+		}
+
 		if app.App.AppID == app_name {
 			instance = app.RollingUpdatePolicy[stageNum].InstancesToUpdate
 			break
