@@ -1,0 +1,24 @@
+<header class="page-header md-display-2">发布列表</header>
+<section>
+  <header class="md-headline">发布列表</header>
+  <md-table-container>
+    <table md-table>
+      <thead md-head>
+      <tr md-row>
+        <th md-column>发布时间</th>
+        <th md-column>发布者</th>
+        <th md-column>项目</th>
+        <th md-column>发布状态</th>
+      </tr>
+      </thead>
+      <tbody md-body>
+      <tr md-row ng-repeat="dessert in [1,2,3,4,5,6,7,8,9,10]">
+        <td md-cell>2016-10-10 10:13:10</td>
+        <td md-cell>发布者</td>
+        <td md-cell><a href="#">项目名</a></td>
+        <td md-cell><span>成功</span></td>
+      </tr>
+      </tbody>
+    </table>
+  </md-table-container>
+</section>
