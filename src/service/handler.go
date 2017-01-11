@@ -160,14 +160,13 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 		return Undefined, 0
 	}
 
-	versions, _ := hs.GetAppVersions(application.AppId)
-	if app.ProposedVersion == nil && len(versions) > 0 {
+	if app.ProposedVersion == nil {
 		return DeploySuccess, int64(0)
 	}
 
 	var appCurrentVersion int64
 	for _, task := range app.Tasks {
-		if task.VersionID == app.ProposedVersion.ID {
+		if app.ProposedVersion != nil && task.VersionID == app.ProposedVersion.ID {
 			appCurrentVersion += 1
 		}
 	}
@@ -175,9 +174,13 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 	var stageCount int64
 	for stageNum, rp := range application.RollingUpdatePolicy {
 		stageCount += rp.InstancesToUpdate
-		if appCurrentVersion == 1 {
+		/*if appCurrentVersion == 1 {
 			return app.State, int64(0)
 		} else if appCurrentVersion-1 == stageCount {
+			return app.State, int64(stageNum + 1)
+		}*/
+
+		if appCurrentVersion == stageCount {
 			return app.State, int64(stageNum + 1)
 		}
 	}
@@ -213,8 +216,9 @@ func (hs *HamalService) RollingUpdate(projectName, appName string) error {
 	if err != nil {
 		return err
 	}
+	log.Info(hs.SwanHost + Apps + "/" + application.AppId)
 	if app.State == "normal" && app.ProposedVersion == nil {
-		body, _ := json.Marshal(application)
+		body, _ := json.Marshal(application.App)
 		req, err := http.NewRequest("PUT",
 			hs.SwanHost+Apps+"/"+application.AppId,
 			bytes.NewReader(body))
