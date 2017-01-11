@@ -70,7 +70,7 @@ func (hs *HamalService) CreateOrUpdateProject(project models.Project) error {
 		}
 	}
 
-	for _, app := range project.Applications {
+	/*for _, app := range project.Applications {
 		body, _ := json.Marshal(app.App)
 		req, err := http.NewRequest("PUT",
 			hs.SwanHost+Apps+"/"+app.AppId,
@@ -92,7 +92,7 @@ func (hs *HamalService) CreateOrUpdateProject(project models.Project) error {
 			log.Errorf("%s", data)
 			continue
 		}
-	}
+	}*/
 
 	project.CreateTime = time.Now().Format(time.RFC3339Nano)
 	hs.Projects[project.Name] = project
@@ -148,7 +148,7 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 func (hs *HamalService) GetProjectDeployStatus(project *models.Project) {
 	for n, application := range project.Applications {
 		status, stage := hs.GetAppDeployStatus(project.Name, application)
-		project.Applications[n].CurrentStage = stage
+		project.Applications[n].NextStage = stage
 		project.Applications[n].Status = status
 	}
 
@@ -160,16 +160,16 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 		return Undefined, 0
 	}
 
-	var appCurrentVersion int64
-	for _, task := range app.Tasks {
-		if app.ProposedVersion != nil && task.VersionID == app.ProposedVersion.ID {
-			appCurrentVersion += 1
-		}
+	versions, _ := hs.GetAppVersions(application.AppId)
+	if app.ProposedVersion == nil && len(versions) > 0 {
+		return DeploySuccess, int64(0)
 	}
 
-	versions, _ := hs.GetAppVersions(application.AppId)
-	if appCurrentVersion == int64(len(app.Tasks)) && len(versions) > 0 {
-		return DeploySuccess, int64(len(application.RollingUpdatePolicy))
+	var appCurrentVersion int64
+	for _, task := range app.Tasks {
+		if task.VersionID == app.ProposedVersion.ID {
+			appCurrentVersion += 1
+		}
 	}
 
 	var stageCount int64
@@ -194,17 +194,48 @@ func (hs *HamalService) RollingUpdate(projectName, appName string) error {
 		return errors.New("project " + projectName + " not exist")
 	}
 
+	var application models.AppUpdateStage
 	instance := int64(0)
 	for _, app := range project.Applications {
 		_, stage := hs.GetAppDeployStatus(project.Name, app)
 		if app.AppId == appName && int(stage) < len(app.RollingUpdatePolicy) {
 			instance = app.RollingUpdatePolicy[stage].InstancesToUpdate
+			application = app
 			break
 		}
 	}
 
 	if instance == 0 {
 		return errors.New("invalid stage")
+	}
+
+	app, err := hs.GetApp(appName)
+	if err != nil {
+		return err
+	}
+	if app.State == "normal" && app.ProposedVersion == nil {
+		body, _ := json.Marshal(application)
+		req, err := http.NewRequest("PUT",
+			hs.SwanHost+Apps+"/"+application.AppId,
+			bytes.NewReader(body))
+		req.Header.Add("Content-Type", "application/json")
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+
+		resp, err := hs.Client.Do(req)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			data, _ := utils.ReadResponseBody(resp)
+			log.Errorf("%s", data)
+			return errors.New(string(data))
+		}
+		return nil
 	}
 
 	req, err := http.NewRequest("PATCH",
