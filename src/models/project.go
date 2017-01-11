@@ -30,7 +30,7 @@ type AppRollbackPolicy struct {
 }
 
 type Hamal struct {
-	ProjectName string `json:"project_name"`
+	Name string `json:"name"`
 }
 
 type RollUpdatePolicy struct {
