@@ -14,6 +14,7 @@ const (
 	ProjectExist    = "503-10002"
 	ProjectNotExist = "503-10003"
 	UpdateError     = "503-10004"
+	GetAppError     = "503-10005"
 )
 
 type HamalControl struct {
@@ -106,4 +107,14 @@ func (hc *HamalControl) RollingUpdate(ctx *gin.Context) {
 		return
 	}
 	utils.Ok(ctx, "success")
+}
+
+func (hc *HamalControl) GetApp(ctx *gin.Context) {
+	app, err := hc.Service.GetApp(ctx.Param("app_id"))
+	if err != nil {
+		utils.ErrorResponse(ctx, utils.NewError(GetAppError, err))
+		return
+	}
+
+	utils.Ok(ctx, app)
 }
