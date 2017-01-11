@@ -24,8 +24,9 @@ const (
 )
 
 const (
-	DeploySuccess = iota + 1
-	DeployIng
+	DeploySuccess = "success"
+	DeployIng     = "updateing"
+	Undefined     = "undefined"
 )
 
 type HamalService struct {
@@ -147,7 +148,7 @@ func (hs *HamalService) GetProjectDeployStatus(project *models.Project) {
 func (hs *HamalService) GetAppDeployStatus(projectName string, application models.AppUpdateStage) (string, int64) {
 	app, err := hs.GetApp(application.AppId)
 	if err != nil {
-		return "not_found", 0
+		return Undefined, 0
 	}
 
 	var appCurrentVersion int64
@@ -155,6 +156,10 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 		if app.ProposedVersion != nil && task.VersionID == app.ProposedVersion.ID {
 			appCurrentVersion += 1
 		}
+	}
+
+	if appCurrentVersion == int64(len(app.Tasks)) {
+		return DeploySuccess, int64(len(application.RollingUpdatePolicy))
 	}
 
 	var stageCount int64
@@ -167,7 +172,7 @@ func (hs *HamalService) GetAppDeployStatus(projectName string, application model
 		}
 	}
 
-	return "unknown", 0
+	return Undefined, 0
 }
 
 func (hs *HamalService) RollingUpdate(projectName, appName string) error {
