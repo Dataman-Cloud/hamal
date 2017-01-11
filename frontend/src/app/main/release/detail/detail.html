@@ -1,10 +1,10 @@
 <header class="page-header md-display-2">项目发布详情</header>
 <section>
-  <header class="md-headline">项目名</header>
+  <header class="md-headline">{/vm.project.name/}</header>
   <div class="list-dl-h" layout="column">
     <dl layout="row">
       <dt>创建时间</dt>
-      <dd>2016-10-31 16:38:42</dd>
+      <dd>{/vm.project.createtime | date: 'yyyy-MM-dd HH:mm'/}</dd>
     </dl>
     <dl layout="row">
       <dt>发布者</dt>
@@ -22,27 +22,27 @@
     </dl>
   </div>
 </section>
-<section>
-  <header class="md-headline">应用名</header>
+<section ng-repeat="app in vm.apps track by $index">
+  <header class="md-headline">应用: {/app.name/}</header>
   <div class="list-dl-h" layout="column">
     <dl layout="row">
       <dt>CPU
         <small>申请</small>
       </dt>
-      <dd>2016-10-31 16:38:42</dd>
+      <dd>{/app.currentVersion.cpus/}</dd>
     </dl>
     <dl layout="row">
       <dt>内存
         <small>申请</small>
       </dt>
-      <dd>-</dd>
+      <dd>{/app.currentVersion.mem/}</dd>
     </dl>
     <dl layout="row">
       <dt>实例
         <small>已发布/总发布</small>
       </dt>
       <dd>
-        5/50
+        {/app.tasks.length/}/{/app.instances/}
         <div>
           <div></div>
         </div>
@@ -52,56 +52,17 @@
       <dt>编排文件对比</dt>
       <dd flex="auto">
         <div layout="row">
-          <div flex="45">
+          <div flex="45" class="panel-code">
             <header>发布版本</header>
-            <div style="background-color: black;">1</div>
+            <div class="content">
+              <pre>{/app.currentVersion | json: 4/}</pre>
+            </div>
           </div>
-          <div flex="45" flex-offset="5">
+          <div flex="45" flex-offset="5" class="panel-code">
             <header>版本号</header>
-            <div style="background-color: black;">2</div>
-          </div>
-        </div>
-      </dd>
-    </dl>
-  </div>
-</section>
-<section>
-  <header class="md-headline">应用名</header>
-  <div class="list-dl-h" layout="column">
-    <dl layout="row">
-      <dt>CPU
-        <small>申请</small>
-      </dt>
-      <dd>2016-10-31 16:38:42</dd>
-    </dl>
-    <dl layout="row">
-      <dt>内存
-        <small>申请</small>
-      </dt>
-      <dd>-</dd>
-    </dl>
-    <dl layout="row">
-      <dt>实例
-        <small>已发布/总发布</small>
-      </dt>
-      <dd>
-        5/50
-        <div>
-          <div></div>
-        </div>
-      </dd>
-    </dl>
-    <dl layout="row">
-      <dt>编排文件对比</dt>
-      <dd flex="auto">
-        <div layout="row">
-          <div flex="45">
-            <header>发布版本</header>
-            <div style="background-color: black;">1</div>
-          </div>
-          <div flex="45" flex-offset="5">
-            <header>版本号</header>
-            <div style="background-color: black;">2</div>
+            <div class="content">
+              <pre>{/app.proposedVersion | json: 4/}</pre>
+            </div>
           </div>
         </div>
       </dd>

@@ -14,7 +14,7 @@ angular.module('frontend', ['ngAnimate', 'ngCookies', 'ngSanitize', 'ngMessages'
   'ui-notification', 'md.data.table', 'angular-loading-bar'])
   .constant('moment', moment)
   .constant('BACKEND_URL_BASE', {
-    defaultBase: "http://192.168.1.155:9888"
+    defaultBase: "http://192.168.1.51:5099"
   })
   .config(config)
   .config(routerConfig)
