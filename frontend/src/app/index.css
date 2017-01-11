@@ -206,3 +206,12 @@ table.md-table tr:hover td.md-cell {
 .multicluster-result .list-dl-h dl:hover dd i {
   display: inline;
 }
+.panel-code header {
+  margin-bottom: 5px;
+}
+.panel-code .content {
+  background-color: black;
+  height: 300px;
+  overflow-y: scroll;
+  color: #FFF;
+}

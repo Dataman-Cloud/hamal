@@ -12,11 +12,11 @@
       </tr>
       </thead>
       <tbody md-body>
-      <tr md-row ng-repeat="dessert in [1,2,3,4,5,6,7,8,9,10]">
-        <td md-cell>2016-10-10 10:13:10</td>
-        <td md-cell>发布者</td>
-        <td md-cell><a href="#">项目名</a></td>
-        <td md-cell><span>成功</span></td>
+      <tr md-row ng-repeat="project in vm.projects track by $index">
+        <td md-cell>{/project.createtime | date: 'yyyy-MM-dd HH:mm'/}</td>
+        <td md-cell>???</td>
+        <td md-cell><a ui-sref="home.detail({project: project.name})">{/project.name/}</a></td>
+        <td md-cell><span>???</span></td>
       </tr>
       </tbody>
     </table>

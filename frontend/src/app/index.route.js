@@ -13,11 +13,11 @@ export function routerConfig($stateProvider, $urlRouterProvider) {
       controllerAs: 'vm'
     })
     .state('home.detail', {
-    url: '/detail',
-    templateUrl: 'app/main/release/detail/detail.html',
-    controller: 'DetailController',
-    controllerAs: 'vm'
-  });
+      url: '/detail/:project',
+      templateUrl: 'app/main/release/detail/detail.html',
+      controller: 'DetailController',
+      controllerAs: 'vm'
+    });
 
   $urlRouterProvider.otherwise($injector => {
     let $state = $injector.get('$state');
