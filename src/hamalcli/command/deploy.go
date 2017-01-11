@@ -16,8 +16,9 @@ import (
 
 const (
 	// TODO move me to configfile
-	BACKEND        = "http://192.168.1.51:5099/v1/hamal"
-	PROJECTEXISTED = 10002
+	BACKEND                = "http://192.168.1.51:5099/v1/hamal"
+	PROJECT_EXISTED        = 10002
+	PROJECT_STATUS_SUCCESS = "success"
 )
 
 type responseCodeType struct {
@@ -64,7 +65,10 @@ func DeployAction(c *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
-		if confirmRollingUpdate(project) {
+		//if project.Applications[0].Status != PROJECT_STATUS_SUCCESS {
+		if project.Applications[0].Status == "ss" {
+			fmt.Print("Mission Accomplished")
+		} else if confirmRollingUpdate(project) {
 			rollingUpdateProject(project)
 		}
 	}
@@ -81,6 +85,7 @@ func getProject(projectName string) (*models.Project, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Print(string(body))
 	if resp.StatusCode == http.StatusOK {
 		var respBody responseBodyType
 		if err = json.Unmarshal(body, &respBody); err != nil {
@@ -115,7 +120,7 @@ func createProject(hamalByte []byte) error {
 		if err = json.Unmarshal(body, &respCode); err != nil {
 			return err
 		}
-		if respCode.Code == PROJECTEXISTED {
+		if respCode.Code == PROJECT_EXISTED {
 			return nil
 		}
 		return errors.New(string(body))
@@ -151,7 +156,7 @@ func confirmRollingUpdate(project *models.Project) bool {
 	}
 	defer ui.Close()
 
-	header := ui.NewPar("Press q to quit, Press h/<- , l/-> to switch options, Press enter to excute the option")
+	header := ui.NewPar("Press [q](fg-magenta) to quit, Press [h/<-](fg-magenta), [l/->](fg-magenta) to switch options, Press [enter](fg-magenta) to excute the option")
 	header.Height = 2
 	header.Width = 50
 	header.Border = false
@@ -159,15 +164,17 @@ func confirmRollingUpdate(project *models.Project) bool {
 
 	// TODO (wtzhou) only support per-app-per-project
 	stagesSum := len(project.Applications[0].RollingUpdatePolicy)
-	currentStage := int(project.Applications[0].CurrentStage)
+	currentStage := int(project.Applications[0].NextStage)
 	stagesArray := make([]string, stagesSum)
 
 	for i := 0; i < int(currentStage); i++ {
 		stagesArray[i] = " [" + strconv.Itoa(i) + "] " + "[Updated " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[i].InstancesToUpdate)) + " instances](fg-blue)"
 	}
-	stagesArray[currentStage] = "*[" + strconv.Itoa(currentStage) + "] " + "[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[currentStage].InstancesToUpdate)) + " instances](fg-white,bg-green)"
-	for i := int(currentStage) + 1; i < stagesSum; i++ {
-		stagesArray[i] = " [" + strconv.Itoa(i) + "] " + "[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[i].InstancesToUpdate)) + " instances](fg-gray)"
+	if stagesSum > currentStage {
+		stagesArray[currentStage] = "*[" + strconv.Itoa(currentStage) + "] " + "[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[currentStage].InstancesToUpdate)) + " instances](fg-white,bg-green)"
+		for i := int(currentStage) + 1; i < stagesSum; i++ {
+			stagesArray[i] = " [" + strconv.Itoa(i) + "] " + "[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[i].InstancesToUpdate)) + " instances](fg-white)"
+		}
 	}
 
 	stagesUI := ui.NewList()
