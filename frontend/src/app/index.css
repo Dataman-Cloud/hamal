@@ -1,0 +1,208 @@
+@import url(//fonts.googleapis.com/css?family=Roboto+Slab:400,700|Roboto:400,700,700italic,400italic);
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(../../bower_components/font-awesome/fonts/fontawesome-webfont.eot); /* For IE6-8 */
+  src: local('Material Icons'),
+  local('MaterialIcons-Regular'),
+  url(../../bower_components/font-awesome/fonts/fontawesome-webfont.woff2) format('woff2'),
+  url(../../bower_components/font-awesome/fonts/fontawesome-webfont.woff) format('woff'),
+  url(../../bower_components/font-awesome/fonts/fontawesome-webfont.ttf) format('truetype');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+/*hamal css*/
+@import url('https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i');
+
+html,body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+.md-display-2, .md-headline, .md-title {
+  padding-left: 16px;
+  padding-right: 16px;
+  font-weight: 600;
+}
+a, a:visited {
+  color: #427fed;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+ul,li {
+  list-style:  none;
+  padding: 0;
+  margin: 0;
+}
+section {
+  margin-bottom: 50px;
+}
+section > header {
+  border-bottom: 0px solid rgba(0,0,0,0.25);
+
+}
+.page-header {
+  background-color: #101929;
+  color: #FFF;
+  margin-bottom: 50px;
+}
+.right-nav {
+  position: fixed;
+  right: 0;
+  bottom: 100px;
+  z-index: 1001;
+  font-size: 12px;
+  background-color: rgba(255,255,255,0.65);
+  padding: 5px;
+}
+.right-nav {
+  line-height: 20px;
+}
+md-list.md-dense md-list-item.md-2-line .md-list-item-text h3, md-list.md-dense md-list-item.md-2-line>.md-no-style .md-list-item-text h3, md-list.md-dense md-list-item.md-3-line .md-list-item-text h3, md-list.md-dense md-list-item.md-3-line>.md-no-style .md-list-item-text h3 {
+  font-size: 14px;
+}
+md-list.md-dense md-list-item.md-2-line .md-list-item-text p {
+  font-size: 11px;
+}
+md-list.md-dense md-list-item.md-2-line .md-list-item-text p small {
+  margin-left: 4px;
+}
+.md-button.md-icon-button.autowidth {
+  padding: 0;
+  margin: 0;
+  width: auto;
+  height: auto;
+  min-height: auto;
+  line-height: 1.05;
+  border-radius: 0;
+}
+table.md-table thead.md-head>tr.md-row {
+  height: 30px;
+}
+table.md-table th.md-column {
+  color: rgba(0,0,0,0.5);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding-bottom: 10px!important;
+  padding-top: 20px!important;
+}
+table.md-table th.md-column small {
+  color: rgba(0,0,0,0.25);
+  margin-left: 4px;
+  font-weight: 400;
+}
+table.md-table td.md-cell dl {
+  margin: 0;
+}
+table.md-table td.md-cell dt, table.md-table td.md-cell dd {
+  display: inline-block;
+}
+table.md-table td.md-cell dd {
+  margin-left: 10px;
+}
+table.md-table tr:hover td.md-cell {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.list-dl-h dl {
+  margin: 16px 0 0 16px;
+  font-size: 0;
+}
+.list-dl-h dl dt {
+  min-width: 240px;
+  font-size: 14px;
+  color: rgba(0,0,0,0.6);
+}
+.list-dl-h dl dt small {
+  margin-left: 5px;
+  color: rgba(0,0,0,0.25);
+  font-size: 11px;
+  font-weight: 400;
+}
+.list-dl-h dl dd {
+  font-size: 14px;
+}
+.list-dl-v dl {
+  font-size: 0;
+  margin-bottom: 15px;
+}
+.list-dl-v dl dt {
+  font-size: 14px;
+  color: rgba(0,0,0,0.6);
+  margin-bottom: 5px;
+}
+.list-dl-v dl dt small {
+  margin-left: 5px;
+  color: rgba(0,0,0,0.25);
+  font-size: 11px;
+  font-weight: 400;
+}
+.list-dl-v dl dd {
+  font-size: 14px;
+  margin: 0 0 5px 0;
+}
+.md-headline {
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  font-size: 30px;
+  font-weight: 400;
+}
+.multicluster-search {
+  width: 260px;
+  padding-left: 20px;
+  margin-right: 60px;
+}
+.multicluster-search li {
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.multicluster-result h3 {
+  margin: 0 0 5px 0;
+}
+.multicluster-result li {
+  margin-bottom: 20px;
+}
+.multicluster-result .list-dl-h dl {
+  margin: 0 0 5px 0;
+}
+.multicluster-result .list-dl-h dt {
+  min-width: 80px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.multicluster-result .list-dl-h dd {
+  font-size: 12px;
+}
+.multicluster-result .list-dl-h dd i {
+  display: none;
+}
+.multicluster-result .list-dl-h dl:hover dd i {
+  display: inline;
+}
