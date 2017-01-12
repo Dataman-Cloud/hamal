@@ -29,7 +29,12 @@ export class DetailController {
         });
 
         this.$q.all(prom).then(data => {
-          this.apps = data.map(item => item.data);
+          this.apps = data.map(item => {
+            let appTmp = item.data;
+            appTmp.currentVersionStr = JSON.stringify(appTmp.currentVersion, null, '\t');
+            appTmp.proposedVersionStr = JSON.stringify(appTmp.proposedVersion, null, '\t');
+            return appTmp
+          });
         })
       }
     })

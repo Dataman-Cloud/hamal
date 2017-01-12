@@ -51,17 +51,23 @@
     <dl layout="row">
       <dt>编排文件对比</dt>
       <dd flex="auto">
-        <div layout="row">
+        <div layout="row" layout-wrap>
           <div flex="45" class="panel-code">
             <header>发布版本</header>
             <div class="content">
-              <pre>{/app.currentVersion | json: 4/}</pre>
+              <pre>{/app.proposedVersionStr/}</pre>
             </div>
           </div>
           <div flex="45" flex-offset="5" class="panel-code">
             <header>版本号</header>
             <div class="content">
-              <pre>{/app.proposedVersion | json: 4/}</pre>
+              <pre>{/app.currentVersionStr/}</pre>
+            </div>
+          </div>
+          <div flex="95" class="panel-code">
+            <header>Diff</header>
+            <div class="content">
+              <pre class="textdiff" line-diff left-obj="app.currentVersionStr" right-obj="app.proposedVersionStr"></pre>
             </div>
           </div>
         </div>

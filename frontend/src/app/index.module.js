@@ -11,7 +11,7 @@ import { releaseBackend } from './main/release/service/release-backend.service'
 
 
 angular.module('frontend', ['ngAnimate', 'ngCookies', 'ngSanitize', 'ngMessages', 'ngAria', 'ngResource', 'ui.router', 'ngMaterial',
-  'ui-notification', 'md.data.table', 'angular-loading-bar'])
+  'ui-notification', 'md.data.table', 'angular-loading-bar', 'diff-match-patch'])
   .constant('moment', moment)
   .constant('BACKEND_URL_BASE', {
     defaultBase: "http://192.168.1.51:5099"

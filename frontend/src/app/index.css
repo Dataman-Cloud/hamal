@@ -215,3 +215,22 @@ table.md-table tr:hover td.md-cell {
   overflow-y: scroll;
   color: #FFF;
 }
+
+pre.textdiff {
+  word-break: normal;
+  word-wrap: normal;
+}
+
+.match, .textdiff span {
+  color: gray;
+}
+
+.ins, ins {
+  color: black;
+  background: #bbffbb;
+}
+
+.del, del {
+  color: black;
+  background: #ffbbbb;
+}
