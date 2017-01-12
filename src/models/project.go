@@ -8,6 +8,7 @@ type Project struct {
 	Name         string           `json:"name"`
 	CreateTime   string           `json:"createtime"`
 	Applications []AppUpdateStage `json:"applications"`
+	Status       int              `json:"-"`
 }
 
 type AppUpdateStage struct {

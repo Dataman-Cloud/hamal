@@ -25,13 +25,14 @@ const (
 
 const (
 	DeploySuccess = "success"
+	DeployCreated = "created"
 	DeployIng     = "updateing"
 	Undefined     = "undefined"
 )
 
 type HamalService struct {
 	SwanHost     string
-	Projects     map[string]models.Project
+	Projects     map[string]*models.Project
 	CurrentStage map[string]int64
 	Client       *http.Client
 	PMutex       *sync.Mutex
@@ -45,7 +46,7 @@ func InitHamalService() *HamalService {
 	}
 	return &HamalService{
 		SwanHost:     u.String(),
-		Projects:     make(map[string]models.Project),
+		Projects:     make(map[string]*models.Project),
 		CurrentStage: make(map[string]int64),
 		Client: &http.Client{
 			Timeout: 10 * time.Second,
@@ -54,7 +55,7 @@ func InitHamalService() *HamalService {
 	}
 }
 
-func (hs *HamalService) CreateOrUpdateProject(project models.Project) error {
+func (hs *HamalService) CreateOrUpdateProject(project *models.Project) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 	if _, ok := hs.Projects[project.Name]; ok {
@@ -66,40 +67,16 @@ func (hs *HamalService) CreateOrUpdateProject(project models.Project) error {
 			return err
 		}
 		if as.State != "normal" {
-			return errors.New("app state is normal can't update")
+			return errors.New("app state is't normal can't update")
 		}
 	}
-
-	/*for _, app := range project.Applications {
-		body, _ := json.Marshal(app.App)
-		req, err := http.NewRequest("PUT",
-			hs.SwanHost+Apps+"/"+app.AppId,
-			bytes.NewReader(body))
-		req.Header.Add("Content-Type", "application/json")
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-
-		resp, err := hs.Client.Do(req)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			data, _ := utils.ReadResponseBody(resp)
-			log.Errorf("%s", data)
-			continue
-		}
-	}*/
 
 	project.CreateTime = time.Now().Format(time.RFC3339Nano)
 	hs.Projects[project.Name] = project
 	return nil
 }
 
-func (hs *HamalService) UpdateProject(project models.Project) error {
+func (hs *HamalService) UpdateProject(project *models.Project) error {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 	if _, ok := hs.Projects[project.Name]; !ok {
@@ -111,12 +88,12 @@ func (hs *HamalService) UpdateProject(project models.Project) error {
 	return nil
 }
 
-func (hs *HamalService) GetProjects() []models.Project {
+func (hs *HamalService) GetProjects() []*models.Project {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
-	var projects []models.Project
+	var projects []*models.Project
 	for _, v := range hs.Projects {
-		hs.GetProjectDeployStatus(&v)
+		hs.GetProjectDeployStatus(v)
 		projects = append(projects, v)
 	}
 	return projects
@@ -133,7 +110,7 @@ func (hs *HamalService) DeleteProject(name string) error {
 	return nil
 }
 
-func (hs *HamalService) GetProject(name string) (models.Project, error) {
+func (hs *HamalService) GetProject(name string) (*models.Project, error) {
 	hs.PMutex.Lock()
 	defer hs.PMutex.Unlock()
 	project, ok := hs.Projects[name]
@@ -141,26 +118,29 @@ func (hs *HamalService) GetProject(name string) (models.Project, error) {
 		return project, errors.New("project " + name + " is not exist")
 	}
 
-	hs.GetProjectDeployStatus(&project)
+	hs.GetProjectDeployStatus(project)
 	return project, nil
 }
 
 func (hs *HamalService) GetProjectDeployStatus(project *models.Project) {
 	for n, application := range project.Applications {
-		status, stage := hs.GetAppDeployStatus(project.Name, application)
+		status, stage := hs.GetAppDeployStatus(project, application)
 		project.Applications[n].NextStage = stage
 		project.Applications[n].Status = status
 	}
 
 }
 
-func (hs *HamalService) GetAppDeployStatus(projectName string, application models.AppUpdateStage) (string, int64) {
+func (hs *HamalService) GetAppDeployStatus(project *models.Project, application models.AppUpdateStage) (string, int64) {
 	app, err := hs.GetApp(application.AppId)
 	if err != nil {
 		return Undefined, 0
 	}
 
 	if app.ProposedVersion == nil {
+		if project.Status == 0 {
+			return DeployCreated, int64(0)
+		}
 		return DeploySuccess, int64(0)
 	}
 
@@ -200,8 +180,8 @@ func (hs *HamalService) RollingUpdate(projectName, appName string) error {
 	var application models.AppUpdateStage
 	instance := int64(0)
 	for _, app := range project.Applications {
-		_, stage := hs.GetAppDeployStatus(project.Name, app)
-		if app.AppId == appName && int(stage) < len(app.RollingUpdatePolicy) {
+		state, stage := hs.GetAppDeployStatus(project, app)
+		if app.AppId == appName && int(stage) < len(app.RollingUpdatePolicy) && state != DeploySuccess {
 			instance = app.RollingUpdatePolicy[stage].InstancesToUpdate
 			application = app
 			break
@@ -216,6 +196,7 @@ func (hs *HamalService) RollingUpdate(projectName, appName string) error {
 	if err != nil {
 		return err
 	}
+	project.Status = 1
 	log.Info(hs.SwanHost + Apps + "/" + application.AppId)
 	if app.State == "normal" && app.ProposedVersion == nil {
 		body, _ := json.Marshal(application.App)
@@ -274,14 +255,39 @@ func (hs *HamalService) GetApp(id string) (types.App, error) {
 	return app, err
 }
 
-func (hs *HamalService) GetAppVersions(appId string) ([]types.Version, error) {
-	var versions []types.Version
-	resp, err := hs.Client.Get(fmt.Sprintf("%s%s/%s/versions", hs.SwanHost, Apps, appId))
+func (hs *HamalService) GetAppVersions(appId string) (map[string]types.Version, error) {
+	m := make(map[string]types.Version)
+
+	app, err := hs.GetApp(appId)
 	if err != nil {
-		return versions, err
+		return m, err
 	}
 
-	data, _ := utils.ReadResponseBody(resp)
-	err = json.Unmarshal(data, &versions)
-	return versions, err
+	var newVersionId string
+	var oldVersionId string
+	if app.ProposedVersion != nil {
+		newVersionId = app.ProposedVersion.PreviousVersionID
+		oldVersionId = app.ProposedVersion.ID
+	} else {
+		if app.CurrentVersion.PreviousVersionID != "" {
+			oldVersionId = app.CurrentVersion.ID
+			newVersionId = app.CurrentVersion.PreviousVersionID
+		} else {
+			newVersionId = app.CurrentVersion.ID
+		}
+	}
+
+	resp, err := hs.Client.Get(fmt.Sprintf("%s%s/%s/versions/%s", hs.SwanHost, Apps, appId, newVersionId))
+	if err == nil {
+		var newVersion types.Version
+		data, _ := utils.ReadResponseBody(resp)
+		json.Unmarshal(data, &newVersion)
+		m["new_version"] = newVersion
+	}
+
+	if oldVersionId != "" {
+		m["old_version"] = *app.ProposedVersion
+	}
+
+	return m, err
 }
