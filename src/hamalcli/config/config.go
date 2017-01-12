@@ -1,0 +1,82 @@
+package config
+
+import (
+	"bufio"
+	"io"
+	"log"
+	"os"
+	"reflect"
+	"strconv"
+	"strings"
+)
+
+const (
+	URL_PREFIX = "/v1/hamal"
+)
+
+var cfg *Config
+
+// Config defines the conf info
+type Config struct {
+	HamalAddr string `require:"true" alias:"hamal_addr"`
+}
+
+// GetConfig get config data
+func GetConfig() *Config {
+	return cfg
+}
+
+func GetServerFullUrl() string {
+	return cfg.HamalAddr + URL_PREFIX
+}
+
+// InitConfig init config
+func InitConfig(file string) {
+	cfg = new(Config)
+
+	f, err := os.Open(file)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	defer func() {
+		if err != nil {
+			f.Close()
+		}
+	}()
+
+	rd := bufio.NewReader(f)
+	for {
+		line, err := rd.ReadString('\n')
+		if err != nil || io.EOF == err {
+			break
+		}
+		kv := strings.SplitN(string(line), "=", 2)
+		if len(kv) == 2 && os.Getenv(kv[0]) == "" {
+			os.Setenv(kv[0], strings.TrimRight(kv[1], "\n"))
+		}
+	}
+	loadConfig(cfg)
+}
+
+// LoadConfig load config data
+func loadConfig(cfg *Config) {
+	robj := reflect.ValueOf(cfg).Elem()
+	for i := 0; i < robj.NumField(); i++ {
+		rb, err := strconv.ParseBool(robj.Type().Field(i).Tag.Get("require"))
+		if err == nil {
+			if rb && os.Getenv(robj.Type().Field(i).Tag.Get("alias")) == "" {
+				log.Fatalf("config field %s not setting", robj.Type().Field(i).Tag.Get("alias"))
+			}
+		}
+		switch robj.Type().Field(i).Type.String() {
+		case "string":
+			robj.Field(i).Set(reflect.ValueOf(os.Getenv(robj.Type().Field(i).Tag.Get("alias"))))
+		case "bool":
+			if b, err := strconv.ParseBool(os.Getenv(robj.Type().Field(i).Tag.Get("alias"))); err == nil {
+				robj.Field(i).Set(reflect.ValueOf(b))
+			} else if rb {
+				log.Fatalf("config %s value invalid", robj.Type().Field(i).Tag.Get("alias"))
+			}
+		}
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	cfg "github.com/Dataman-Cloud/hamal/src/hamalcli/config"
 	"github.com/Dataman-Cloud/hamal/src/models"
 	ui "github.com/gizak/termui"
 	"github.com/urfave/cli"
@@ -15,10 +16,10 @@ import (
 )
 
 const (
-	// TODO move me to configfile
-	BACKEND                = "http://192.168.1.51:5099/v1/hamal"
-	PROJECT_EXISTED        = 10002
+	CODE_SUCCESS           = 0
+	PROJECT_NOT_EXIST      = 10003
 	PROJECT_STATUS_SUCCESS = "success"
+	PROJECT_STATUS_CREATED = "created"
 )
 
 type responseCodeType struct {
@@ -54,9 +55,6 @@ func DeployAction(c *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
-		if err = createProject(content); err != nil {
-			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
-		}
 		var hamalJSON models.Hamal
 		if err = json.Unmarshal(content, &hamalJSON); err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
@@ -65,9 +63,17 @@ func DeployAction(c *cli.Context) error {
 		if err != nil {
 			return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 		}
-		//if project.Applications[0].Status != PROJECT_STATUS_SUCCESS {
-		if project.Applications[0].Status == "ss" {
-			fmt.Print("Mission Accomplished")
+		if project == nil {
+			if err = createProject(content); err != nil {
+				return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
+			}
+			// TODO (wtzhou) we can bypass the duplicated getProject call if createProject return the object
+			if project, err = getProject(hamalJSON.Name); err != nil {
+				return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
+			}
+		}
+		if project.Applications[0].Status == PROJECT_STATUS_SUCCESS {
+			fmt.Print("Have been updated to current version")
 		} else if confirmRollingUpdate(project) {
 			rollingUpdateProject(project)
 		}
@@ -76,7 +82,7 @@ func DeployAction(c *cli.Context) error {
 }
 
 func getProject(projectName string) (*models.Project, error) {
-	resp, err := http.Get(BACKEND + "/projects/" + projectName)
+	resp, err := http.Get(cfg.GetServerFullUrl() + "/projects/" + projectName)
 	if err != nil {
 		return nil, err
 	}
@@ -85,24 +91,27 @@ func getProject(projectName string) (*models.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Print(string(body))
-	if resp.StatusCode == http.StatusOK {
+
+	var respCode responseCodeType
+	if err = json.Unmarshal(body, &respCode); err != nil {
+		return nil, err
+	}
+	switch respCode.Code {
+	case PROJECT_NOT_EXIST:
+		return nil, nil
+	case CODE_SUCCESS:
 		var respBody responseBodyType
 		if err = json.Unmarshal(body, &respBody); err != nil {
 			return nil, err
-		} else {
-			if respBody.Code == 0 {
-				return &respBody.Data, nil
-			}
 		}
-	} else {
-		return nil, errors.New(string(body))
+		return &respBody.Data, nil
+	default:
+		return nil, errors.New("Unknown Error")
 	}
-	return nil, nil
 }
 
 func createProject(hamalByte []byte) error {
-	req, err := http.NewRequest("POST", BACKEND+"/projects", bytes.NewBuffer(hamalByte))
+	req, err := http.NewRequest("POST", cfg.GetServerFullUrl()+"/projects", bytes.NewBuffer(hamalByte))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -114,18 +123,10 @@ func createProject(hamalByte []byte) error {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode == http.StatusCreated {
-		fmt.Print(string(body))
+		return nil
 	} else {
-		var respCode responseCodeType
-		if err = json.Unmarshal(body, &respCode); err != nil {
-			return err
-		}
-		if respCode.Code == PROJECT_EXISTED {
-			return nil
-		}
 		return errors.New(string(body))
 	}
-
 	return nil
 }
 
@@ -133,7 +134,7 @@ func rollingUpdateProject(project *models.Project) error {
 	client := &http.Client{}
 	// TODO (wtzhou) we can support PER-app-PER-project only now
 	for _, app := range project.Applications {
-		req, err := http.NewRequest("PUT", BACKEND+"/projects/"+project.Name+"/rollingupdate", strings.NewReader(`{"app_id":"`+app.AppId+`"}`))
+		req, err := http.NewRequest("PUT", cfg.GetServerFullUrl()+"/projects/"+project.Name+"/rollingupdate", strings.NewReader(`{"app_id":"`+app.AppId+`"}`))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := client.Do(req)
 		if err != nil {

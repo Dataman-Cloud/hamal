@@ -1,3 +1,4 @@
 config_file
+.hamal_cfg
 bin/
 src/hamalcli/hamalcli
