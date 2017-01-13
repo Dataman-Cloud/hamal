@@ -68,6 +68,12 @@
                     "instances_to_update": 1
                 },
                 {
+                    "instances_to_update": 2
+                },
+                {
+                    "instances_to_update": 1
+                },
+                {
                     "instances_to_update": 1
                 }
             ]
