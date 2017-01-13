@@ -1,5 +1,16 @@
 ### Install
 
+#### Opt 1: in docker way
+
+>```bash
+docker run -it --net=host --rm -v /root/wtzhou/hamal/frontend:/src  mkenney/npm:latest sh
+npm install
+bower install --allow-root
+gulp serve
+```
+
+#### Opt 2: in bare metal way
+
 ##### Install required tools `gulp` and `bower`:
 ```
 npm install -g gulp bower
