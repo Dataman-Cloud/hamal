@@ -2,7 +2,7 @@
     "name": "nginxtest",
     "applications": [
         {
-            "app_id": "nginx0052-xcm-localmesos",
+            "app_id": "nginx0052-xcm-dataman",
             "orchestration": {
                 "appID": "nginx0052",
                 "cmd": null,
