@@ -7,10 +7,10 @@ export class releaseBackend {
   }
 
   projects() {
-    return this.$resource(this.BACKEND_URL_BASE.defaultBase + '/v1/hamal/projects/:project', {project: '@project'});
+    return this.$resource(`${this.BACKEND_URL_BASE.defaultBase}/v1/hamal/projects/:project`, {project: '@project'});
   }
 
   applications() {
-    return this.$resource(this.BACKEND_URL_BASE.defaultBase + '/v1/hamal/apps/:app', {app: '@app'});
+    return this.$resource(`${this.BACKEND_URL_BASE.defaultBase}/v1/hamal/apps/:app`, {app: '@app'});
   }
 }
