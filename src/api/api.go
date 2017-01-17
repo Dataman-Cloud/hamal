@@ -120,6 +120,11 @@ func (hc *HamalControl) GetApp(ctx *gin.Context) {
 	utils.Ok(ctx, app)
 }
 
+func (hc *HamalControl) Rollback(ctx *gin.Context) {
+	projectName := ctx.Param("name")
+	utils.Ok(ctx, "success")
+}
+
 func (hc *HamalControl) GetAppVersions(ctx *gin.Context) {
 	version, err := hc.Service.GetAppVersions(ctx.Param("app_id"))
 	if err != nil {

@@ -151,6 +151,10 @@ func rollingUpdateProject(project *models.Project) error {
 	return nil
 }
 
+func rollback(project *models.Project) error {
+	client := &http.Client{}
+}
+
 func confirmRollingUpdate(project *models.Project) bool {
 	if err := ui.Init(); err != nil {
 		panic(err)
