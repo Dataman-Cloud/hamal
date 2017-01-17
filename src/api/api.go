@@ -122,6 +122,23 @@ func (hc *HamalControl) GetApp(ctx *gin.Context) {
 
 func (hc *HamalControl) Rollback(ctx *gin.Context) {
 	projectName := ctx.Param("name")
+	var data models.RollUpdatePolicy
+	if err := ctx.BindJSON(&data); err != nil {
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
+		return
+	}
+
+	appId := data.AppId
+	if appId == "" {
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, "invalid app_id"))
+		return
+	}
+
+	err := hc.Service.Rollback(projectName, appId)
+	if err != nil {
+		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
+		return
+	}
 	utils.Ok(ctx, "success")
 }
 

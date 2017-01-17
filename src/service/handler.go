@@ -291,3 +291,30 @@ func (hs *HamalService) GetAppVersions(appId string) (map[string]types.Version, 
 
 	return m, err
 }
+
+func (hs *HamalService) Rollback(projectName, appId string) error {
+	hs.PMutex.Lock()
+	defer hs.PMutex.Unlock()
+
+	_, ok := hs.Projects[projectName]
+	if !ok {
+		return errors.New("project " + projectName + " not exist")
+	}
+
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s%s/%s/cancel-update", hs.SwanHost, Apps, appId), nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := hs.Client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		data, _ := utils.ReadResponseBody(resp)
+		log.Error(string(data))
+		return errors.New(string(data))
+	}
+	return nil
+}
