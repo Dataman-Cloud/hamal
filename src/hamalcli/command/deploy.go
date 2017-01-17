@@ -169,12 +169,18 @@ func confirmRollingUpdate(project *models.Project) bool {
 	stagesArray := make([]string, stagesSum)
 
 	for i := 0; i < int(currentStage); i++ {
-		stagesArray[i] = " [" + strconv.Itoa(i) + "] " + "[Updated " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[i].InstancesToUpdate)) + " instances](fg-blue)"
+		stagesArray[i] = " [" + strconv.Itoa(i) + "] " +
+			"[Updated " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[i].InstancesToUpdate)) +
+			" instances](fg-blue)"
 	}
 	if stagesSum > currentStage {
-		stagesArray[currentStage] = "*[" + strconv.Itoa(currentStage) + "] " + "[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[currentStage].InstancesToUpdate)) + " instances](fg-white,bg-green)"
+		stagesArray[currentStage] = "*[" + strconv.Itoa(currentStage) + "] " +
+			"[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[currentStage].InstancesToUpdate)) +
+			" instances](fg-white,bg-green)"
 		for i := int(currentStage) + 1; i < stagesSum; i++ {
-			stagesArray[i] = " [" + strconv.Itoa(i) + "] " + "[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[i].InstancesToUpdate)) + " instances](fg-white)"
+			stagesArray[i] = " [" + strconv.Itoa(i) + "] " +
+				"[Pending update " + strconv.Itoa(int(project.Applications[0].RollingUpdatePolicy[i].InstancesToUpdate)) +
+				" instances](fg-white)"
 		}
 	}
 
