@@ -305,6 +305,7 @@ func (hs *HamalService) Rollback(projectName, appId string) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := hs.Client.Do(req)
 	if err != nil {
