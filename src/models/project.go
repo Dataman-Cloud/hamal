@@ -34,6 +34,6 @@ type Hamal struct {
 	Name string `json:"name"`
 }
 
-type RollUpdatePolicy struct {
+type RollPolicy struct {
 	AppId string `json:"app_id"`
 }

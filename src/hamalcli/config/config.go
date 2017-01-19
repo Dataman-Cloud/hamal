@@ -18,7 +18,7 @@ var cfg *Config
 
 // Config defines the conf info
 type Config struct {
-	HamalAddr string `require:"true" alias:"hamal_addr"`
+	HamalAddr string `require:"true" alias:"HAMAL_ADDR"`
 }
 
 // GetConfig get config data

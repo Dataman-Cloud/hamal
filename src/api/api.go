@@ -90,7 +90,7 @@ func (hc *HamalControl) GetProject(ctx *gin.Context) {
 
 func (hc *HamalControl) RollingUpdate(ctx *gin.Context) {
 	projectName := ctx.Param("name")
-	var data models.RollUpdatePolicy
+	var data models.RollPolicy
 	if err := ctx.BindJSON(&data); err != nil {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
 		return
@@ -122,7 +122,7 @@ func (hc *HamalControl) GetApp(ctx *gin.Context) {
 
 func (hc *HamalControl) Rollback(ctx *gin.Context) {
 	projectName := ctx.Param("name")
-	var data models.RollUpdatePolicy
+	var data models.RollPolicy
 	if err := ctx.BindJSON(&data); err != nil {
 		utils.ErrorResponse(ctx, utils.NewError(ParamError, err))
 		return
