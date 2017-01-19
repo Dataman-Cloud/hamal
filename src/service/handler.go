@@ -317,5 +317,6 @@ func (hs *HamalService) Rollback(projectName, appId string) error {
 		log.Error(string(data))
 		return errors.New(string(data))
 	}
+	hs.Projects[projectName].Status = 0
 	return nil
 }
