@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	URL_PREFIX = "/v1/hamal"
+	// URLPrefix define the API url prefix
+	URLPrefix = "/v1/hamal"
 )
 
 var cfg *Config
@@ -26,8 +27,9 @@ func GetConfig() *Config {
 	return cfg
 }
 
-func GetServerFullUrl() string {
-	return cfg.HamalAddr + URL_PREFIX
+// GetServerFullURL return the hamal server url
+func GetServerFullURL() string {
+	return cfg.HamalAddr + URLPrefix
 }
 
 // InitConfig init config

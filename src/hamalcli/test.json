@@ -1,67 +1,46 @@
 {
-    "name": "nginxtest",
+    "name": "nginx01",
     "applications": [
         {
-            "app_id": "nginx0052-xcm-dataman",
+            "app_id": "nginx01-zdou-datamanmesos",
             "orchestration": {
-                "appID": "nginx0052",
-                "cmd": null,
-                "cpus": 0.05,
-                "mem": 6,
-                "disk": 0,
-                "runAs": "xcm",
-                "instances": 5,
-                "container": {
-                    "docker": {
-                        "image": "blackicebird/2048",
-                        "network": "BRIDGE",
-                        "forcePullImage": false,
-                        "privileged": true,
-                        "parameters": [
-                            {
-                                "key": "label",
-                                "value": "APP_ID=nginx"
-                            }
-                        ],
-                        "portMappings": [
-                            {
-                                "containerPort": 80,
-                                "protocol": "tcp",
-                                "name": "web"
-                            }
-                        ]
-                    },
-                    "type": "DOCKER"
-                },
-                "uris": [
-                ],
-                "env": {
-                    "DB": "mysql"
-                },
-                "labels": {
-                    "USER_ID": "1"
-                },
-                "killPolicy": {
-                    "duration": 5
-                },
-                "healthChecks": [
+              "appID": "nginx01",
+              "cpus": 0.02,
+              "mem": 5,
+              "instances": 5,
+              "runAs": "zdou",
+              "container": {
+                "type": "DOCKER",
+                "docker": {
+                  "image": "nginx:1.11",
+                  "network": "BRIDGE",
+                  "portMappings": [
                     {
-                        "protocol": "TCP",
-                        "path": "/",
-                        "delaySeconds": 15,
-                        "gracePeriodSeconds": 5,
-                        "portName": "web",
-                        "intervalSeconds": 3,
-                        "timeoutSeconds": 3,
-                        "consecutiveFailures": 5
+                      "containerPort": 80,
+                      "name": "web",
+                      "protocol": "tcp"
                     }
-                ],
-                "updatePolicy": {
-                    "updateDelay": 5,
-                    "maxRetries": 3,
-                    "maxFailovers": 3,
-                    "action": "rollback"
-                }
+                  ],
+                  "privileged": true
+                },
+                "volumes": [
+                  {
+                    "containerPath": "/data",
+                    "hostPath": "/home",
+                    "mode": "RW"
+                  }
+                ]
+              },
+              "labels": {
+                "USER_ID": "1"
+              },
+              "env": {
+                "DB": "mysql"
+              },
+              "killPolicy": {
+                "duration": 5
+              },
+              "mode": "replicates"
             },
             "rolling_update_policy": [
                 {
