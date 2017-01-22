@@ -2,6 +2,15 @@
 	"version": 0,
 	"dependencies": [
 		{
+			"importpath": "github.com/Dataman-Cloud/swan/src/types",
+			"repository": "https://github.com/Dataman-Cloud/swan",
+			"vcs": "git",
+			"revision": "ef70a0f551f790556d57a57b9a0a5931aa08fc65",
+			"branch": "master",
+			"path": "/src/types",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/Sirupsen/logrus",
 			"repository": "https://github.com/Sirupsen/logrus",
 			"vcs": "git",
@@ -14,6 +23,55 @@
 			"repository": "https://github.com/gin-gonic/gin",
 			"vcs": "git",
 			"revision": "e2212d40c62a98b388a5eb48ecbdcf88534688ba",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/gizak/termui",
+			"repository": "https://github.com/gizak/termui",
+			"vcs": "git",
+			"revision": "f63e0cdd3f66ccb5fd4a906a31576b4b67904001",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/maruel/panicparse/stack",
+			"repository": "https://github.com/maruel/panicparse",
+			"vcs": "git",
+			"revision": "ad661195ed0e88491e0f14be6613304e3b1141d6",
+			"branch": "master",
+			"path": "/stack",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/mattn/go-isatty",
+			"repository": "https://github.com/mattn/go-isatty",
+			"vcs": "git",
+			"revision": "30a891c33c7cde7b02a981314b4228ec99380cca",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/mattn/go-runewidth",
+			"repository": "https://github.com/mattn/go-runewidth",
+			"vcs": "git",
+			"revision": "737072b4e32b7a5018b4a7125da8d12de90e8045",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/mitchellh/go-wordwrap",
+			"repository": "https://github.com/mitchellh/go-wordwrap",
+			"vcs": "git",
+			"revision": "ad45545899c7b13c020ea92b2072220eefad42b8",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/nsf/termbox-go",
+			"repository": "https://github.com/nsf/termbox-go",
+			"vcs": "git",
+			"revision": "abe82ce5fb7a42fbd6784a5ceb71aff977e09ed8",
 			"branch": "master",
 			"notests": true
 		},

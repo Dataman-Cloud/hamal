@@ -5,21 +5,32 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	cfg "github.com/Dataman-Cloud/hamal/src/hamalcli/config"
-	"github.com/Dataman-Cloud/hamal/src/models"
-	ui "github.com/gizak/termui"
-	"github.com/urfave/cli"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
+
+	cfg "github.com/Dataman-Cloud/hamal/src/hamalcli/config"
+	"github.com/Dataman-Cloud/hamal/src/models"
+	ui "github.com/gizak/termui"
+	"github.com/urfave/cli"
 )
 
 const (
-	CODE_SUCCESS           = 0
-	PROJECT_NOT_EXIST      = 10003
-	PROJECT_STATUS_SUCCESS = "success"
-	PROJECT_STATUS_CREATED = "created"
+	// CodeSuccess define the success return code
+	CodeSuccess = 0
+	// ProjectNotExist define the error return code for Project not exist
+	ProjectNotExist = 10003
+	// ProjectStatusSuccess define the string success
+	ProjectStatusSuccess = "success"
+	// ProjectStatusCreated define the string success
+	ProjectStatusCreated = "created"
+	// ActionContinue define the string continue
+	ActionContinue = "continue"
+	// ActionRollback define the string rollback
+	ActionRollback = "rollback"
+	// ActionStop define the string stop
+	ActionStop = "stop"
 )
 
 type responseCodeType struct {
@@ -31,6 +42,7 @@ type responseBodyType struct {
 	Data models.Project `json:"data"`
 }
 
+// NewDeployCommand init the struct Cli.Command
 func NewDeployCommand() cli.Command {
 	return cli.Command{
 		Name:    "deploy",
@@ -46,6 +58,7 @@ func NewDeployCommand() cli.Command {
 	}
 }
 
+// DeployAction handle the action in project deployment
 func DeployAction(c *cli.Context) error {
 	file := c.String("file")
 	if file == "" {
@@ -72,17 +85,25 @@ func DeployAction(c *cli.Context) error {
 				return cli.NewExitError(fmt.Sprintf("%s", err.Error()), 1)
 			}
 		}
-		if project.Applications[0].Status == PROJECT_STATUS_SUCCESS {
+		if project.Applications[0].Status == ProjectStatusSuccess {
 			fmt.Print("Have been updated to current version")
-		} else if confirmRollingUpdate(project) {
+			return nil
+		}
+		action := nextAction(project)
+		switch action {
+		case ActionContinue:
 			rollingUpdateProject(project)
+		case ActionRollback:
+			rollbackProject(project)
+		default:
+			fmt.Printf("No this action: %s", action)
 		}
 	}
 	return nil
 }
 
 func getProject(projectName string) (*models.Project, error) {
-	resp, err := http.Get(cfg.GetServerFullUrl() + "/projects/" + projectName)
+	resp, err := http.Get(cfg.GetServerFullURL() + "/projects/" + projectName)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +118,9 @@ func getProject(projectName string) (*models.Project, error) {
 		return nil, err
 	}
 	switch respCode.Code {
-	case PROJECT_NOT_EXIST:
+	case ProjectNotExist:
 		return nil, nil
-	case CODE_SUCCESS:
+	case CodeSuccess:
 		var respBody responseBodyType
 		if err = json.Unmarshal(body, &respBody); err != nil {
 			return nil, err
@@ -111,7 +132,7 @@ func getProject(projectName string) (*models.Project, error) {
 }
 
 func createProject(hamalByte []byte) error {
-	req, err := http.NewRequest("POST", cfg.GetServerFullUrl()+"/projects", bytes.NewBuffer(hamalByte))
+	req, err := http.NewRequest("POST", cfg.GetServerFullURL()+"/projects", bytes.NewBuffer(hamalByte))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -123,10 +144,11 @@ func createProject(hamalByte []byte) error {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode == http.StatusCreated {
-		return nil
+		fmt.Printf("Created: %s", string(body))
 	} else {
 		return errors.New(string(body))
 	}
+
 	return nil
 }
 
@@ -134,7 +156,7 @@ func rollingUpdateProject(project *models.Project) error {
 	client := &http.Client{}
 	// TODO (wtzhou) we can support PER-app-PER-project only now
 	for _, app := range project.Applications {
-		req, err := http.NewRequest("PUT", cfg.GetServerFullUrl()+"/projects/"+project.Name+"/rollingupdate", strings.NewReader(`{"app_id":"`+app.AppId+`"}`))
+		req, err := http.NewRequest("PUT", cfg.GetServerFullURL()+"/projects/"+project.Name+"/rollingupdate", strings.NewReader(`{"app_id":"`+app.AppId+`"}`))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := client.Do(req)
 		if err != nil {
@@ -143,7 +165,7 @@ func rollingUpdateProject(project *models.Project) error {
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		if resp.StatusCode == http.StatusOK {
-			fmt.Print(string(body))
+			fmt.Printf("Updated: %s", string(body))
 		} else {
 			return errors.New(string(body))
 		}
@@ -151,11 +173,28 @@ func rollingUpdateProject(project *models.Project) error {
 	return nil
 }
 
-func rollback(project *models.Project) error {
+func rollbackProject(project *models.Project) error {
 	client := &http.Client{}
+	// TODO (wtzhou) we can support PER-app-PER-project only now
+	for _, app := range project.Applications {
+		req, err := http.NewRequest("PUT", cfg.GetServerFullURL()+"/projects/"+project.Name+"/rollback", strings.NewReader(`{"app_id":"`+app.AppId+`"}`))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		if resp.StatusCode == http.StatusOK {
+			fmt.Printf("Rollbacked: %s", string(body))
+		} else {
+			return errors.New(string(body))
+		}
+	}
+	return nil
 }
 
-func confirmRollingUpdate(project *models.Project) bool {
+func nextAction(project *models.Project) string {
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
@@ -195,19 +234,19 @@ func confirmRollingUpdate(project *models.Project) bool {
 	stagesUI.Height = 10
 	stagesUI.Width = 20
 
-	confirmBar := ui.NewPar("Confirm")
-	confirmBar.TextFgColor = ui.ColorWhite
-	confirmBar.TextBgColor = ui.ColorGreen
-	confirmBar.Height = 2
-	confirmBar.Width = 5
-	confirmBar.Border = false
+	continueBar := ui.NewPar("Continue")
+	continueBar.TextFgColor = ui.ColorWhite
+	continueBar.TextBgColor = ui.ColorGreen
+	continueBar.Height = 2
+	continueBar.Width = 5
+	continueBar.Border = false
 
-	cancelBar := ui.NewPar("Cancel")
-	cancelBar.Height = 2
-	cancelBar.TextFgColor = ui.ColorWhite
-	cancelBar.TextBgColor = ui.ColorDefault
-	cancelBar.Width = 5
-	cancelBar.Border = false
+	rollbackBar := ui.NewPar("Roll Back")
+	rollbackBar.Height = 2
+	rollbackBar.TextFgColor = ui.ColorWhite
+	rollbackBar.TextBgColor = ui.ColorDefault
+	rollbackBar.Width = 5
+	rollbackBar.Border = false
 
 	ui.Body.AddRows(
 		ui.NewRow(
@@ -217,8 +256,8 @@ func confirmRollingUpdate(project *models.Project) bool {
 			ui.NewCol(4, 2, stagesUI),
 		),
 		ui.NewRow(
-			ui.NewCol(2, 2, cancelBar),
-			ui.NewCol(1, 1, confirmBar),
+			ui.NewCol(2, 2, rollbackBar),
+			ui.NewCol(1, 1, continueBar),
 		),
 	)
 
@@ -226,39 +265,39 @@ func confirmRollingUpdate(project *models.Project) bool {
 	ui.Body.Align()
 	ui.Render(ui.Body)
 
-	confirm := true
+	action := ActionContinue
 
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
-		confirm = false
+		action = ActionStop
 	})
 	ui.Handle("/sys/kbd/h", func(ui.Event) {
-		highlightToggle(cancelBar, confirmBar)
+		highlightToggle(rollbackBar, continueBar)
 		ui.Render(ui.Body)
-		confirm = false
+		action = ActionRollback
 	})
 	ui.Handle("/sys/kbd/l", func(ui.Event) {
-		highlightToggle(confirmBar, cancelBar)
+		highlightToggle(continueBar, rollbackBar)
 		ui.Render(ui.Body)
-		confirm = true
+		action = ActionContinue
 	})
 	ui.Handle("/sys/kbd/<left>", func(ui.Event) {
-		highlightToggle(cancelBar, confirmBar)
+		highlightToggle(rollbackBar, continueBar)
 		ui.Clear()
 		ui.Render(ui.Body)
-		confirm = false
+		action = ActionRollback
 	})
 	ui.Handle("/sys/kbd/<right>", func(ui.Event) {
-		highlightToggle(confirmBar, cancelBar)
+		highlightToggle(continueBar, rollbackBar)
 		ui.Clear()
 		ui.Render(ui.Body)
-		confirm = true
+		action = ActionContinue
 	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		ui.StopLoop()
 	})
 	ui.Loop()
-	return confirm
+	return action
 }
 
 func highlightToggle(parA *ui.Par, parB *ui.Par) {
